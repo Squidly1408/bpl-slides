@@ -23,7 +23,8 @@ A client-side tool for Big Picture Learning students to turn a term's work into 
 - **Icon library** — search and insert from the full ~2,000-icon Font Awesome Free set, bundled with the app (`@fortawesome/free-solid-svg-icons`, no CDN) so it works offline and no search query ever leaves your browser.
 - **Maths** — type an expression (standard LaTeX-ish notation: `^`, `_`, `\frac`, `\sqrt`, `\sum`, `\int`, Greek letters, …) rendered live via KaTeX, entirely on-device; or attach a photo of handwritten maths as a plain image instead (see Known limitations for why that photo isn't auto-digitised).
 - **The Big Picture Learning Flower, for real** — an editable, insertable version of BPLA's actual Learning-Flower graphic (exact petal artwork, official colours, and 1-5 progression scale, not an approximation) — six sliders in its properties panel adjust each Learning Goal's level live, each backed by BPLA's real level-descriptor text. See `lib/flowerData.ts`.
-- **Works on phone, tablet, and desktop** — the editor's slide list and settings panel become full-screen drawers below the `lg` breakpoint; touch dragging/resizing is supported.
+- **Interactive first-run tour** — a short, skippable spotlight tour (`components/Coachmarks.tsx`) that dims the real page and points at actual buttons/panels one at a time, rather than a generic modal describing features in the abstract. A dashboard tour and a separate editor tour each auto-open once per browser and are reachable again from the header's ? Help button; every step adapts across desktop, tablet, and phone (a step whose desktop-only element isn't on screen right now spotlights its mobile drawer-button counterpart instead, or is skipped if neither applies).
+- **Works on phone, tablet, and desktop** — the editor's slide list, add-block menu, and settings panel become full-screen drawers below the `lg` breakpoint, and the slide canvas is sized to fit whichever dimension (width or height) is actually tighter on the current screen, rather than assuming desktop's usual width-constrained case; touch dragging/resizing is supported.
 - **Present mode** — fullscreen, advance via keyboard (→/Space), mouse click zones, or voice ("next"/"back" using your browser's built-in speech recognition — this is the one feature that needs an internet connection, see Known limitations below); a pen/drawing overlay for live annotation.
 - **Media viewers** — images, video, audio, embedded websites (iframe), and an interactive 3D mesh viewer (orbit/zoom, wireframe toggle) built on Three.js.
 - **Drawing/pen tool** — as a slide block, a Present-mode annotation overlay, and a standalone whiteboard at `/draw`.
@@ -36,9 +37,11 @@ A client-side tool for Big Picture Learning students to turn a term's work into 
 
 ```bash
 npm install
-npm run dev       # start the dev server
-npm run build      # type-check + production build to dist/
+npm run dev        # start the dev server
+npm run build      # type-check (incl. tests, see below) + production build to dist/
 npm run preview    # preview the production build locally
+npm test           # run the Vitest suite in watch mode
+npm run test:run   # run it once (CI-style)
 ```
 
 Requires Node 20+. The offline/install behaviour only runs against the production build — `npm run dev` does not register the service worker; use `npm run build && npm run preview` to test it.
@@ -48,16 +51,22 @@ Requires Node 20+. The offline/install behaviour only runs against the productio
 ```
 src/
   pages/        route-level screens (Dashboard, UploadWork, Editor, Present, Draw, Privacy, Terms)
-  components/   SlideStage (the editable/presentable canvas), block renderers (incl. FlowerGraphBlock,
-                IconBlockContent, MathBlockContent), MeshViewer, DrawingCanvas, IconPickerModal,
-                MathBlockEditorModal, Logo, icons, ...
+  components/   SlideStage (the editable/presentable canvas), Coachmarks (the spotlight tour engine),
+                block renderers (incl. FlowerGraphBlock, IconBlockContent, MathBlockContent), MeshViewer,
+                DrawingCanvas, IconPickerModal, MathBlockEditorModal, Logo, icons, ...
   lib/          IndexedDB layer (db.ts), themes.ts, layouts.ts (the slide "design system"), templates.ts,
                 industries.ts, flowerData.ts (the real Learning Flower's petal paths/colours/level text),
-                icons.ts (Font Awesome lookup), shapes.ts (shape-kind clip-paths), document parsers,
-                pptx export/import, project-file export/import, speech nav
+                icons.ts (Font Awesome lookup), shapes.ts (shape-kind clip-paths), tutorial.ts (per-tour
+                "seen" tracking + the Help-button pub/sub), hooks.ts (incl. useContainedSize, the slide
+                canvas's fit-to-available-space sizing), document parsers, pptx export/import,
+                project-file export/import, speech nav
   store/        Zustand store for the project being edited (with undo/redo history)
   types/        the Project/Slide/Block data model
+  test/         Vitest environment setup (jsdom polyfills, fake-indexeddb, RTL cleanup)
 ```
+
+Colocated `*.test.ts(x)` files hold the test suite (152 tests as of writing) — unit tests for `lib/`, the
+Zustand store, and component/interaction tests for Coachmarks and a few others via Testing Library.
 
 ## Known limitations (phase 2 ideas)
 
