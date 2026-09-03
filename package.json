@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "A fully client-side, offline-capable slideshow builder for Big Picture Learning students — build, present, and export an exhibition deck with nothing ever leaving the browser. Student-built; not an official BPLA product.",
   "author": "Lucas Newman",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "dev": "vite",
