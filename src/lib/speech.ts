@@ -48,21 +48,37 @@ const FATAL_ERRORS: Record<string, string> = {
   'language-not-supported': 'Voice navigation isn\'t supported in this language on your device.',
 }
 
+/** `navigator.brave` only exists in the Brave browser (an official
+ * self-identification API — see https://brave.com/docs/features/detecting-brave/).
+ * Its mere presence is enough here; we don't need the async `isBrave()`
+ * confirmation call just to pick which troubleshooting text to show. */
+function isBrave(): boolean {
+  return typeof navigator !== 'undefined' && 'brave' in navigator
+}
+
 /**
  * The browser's SpeechRecognition throws a "network" error whenever it can't
  * reach its speech-recognition service — but that's NOT the same thing as
  * "you have no internet connection". It also fires while genuinely online,
- * most commonly because a school/organisation network's content filter
- * (Securly, GoGuardian, Cisco Umbrella, a proxy, etc.) blocks the specific
- * cloud endpoint the browser needs for it, even though ordinary browsing
- * still works fine. Asserting "you're offline" in that case is actively
- * wrong and sends a student chasing the wrong fix, so this message is
- * chosen at the point of failure based on what navigator.onLine actually
- * says right then, rather than a single static string.
+ * for two common reasons that need different fixes, so this message is
+ * chosen at the point of failure rather than a single static string:
+ *
+ * - Brave blocks Google's speech-to-text backend by default as part of
+ *   Shields — this reproduces on *every* network, not just one, which is
+ *   the tell that distinguishes it from the next case.
+ * - A school/organisation network's content filter (Securly, GoGuardian,
+ *   Cisco Umbrella, a proxy, etc.) blocks the specific cloud endpoint the
+ *   browser needs for it, even though ordinary browsing still works fine.
+ *
+ * Asserting "you're offline" when neither is actually true is actively
+ * wrong and sends a student chasing the wrong fix.
  */
 function networkErrorMessage(): string {
   if (!navigator.onLine) {
     return 'Voice navigation needs an internet connection (it uses your browser\'s speech service) — you appear to be offline right now.'
+  }
+  if (isBrave()) {
+    return 'Voice navigation couldn\'t reach the speech recognition service. This looks like Brave, which blocks Google\'s speech service by default as part of Shields — click the Brave lion icon in the address bar and turn Shields down (or off) for this site, then try again.'
   }
   return 'Voice navigation couldn\'t reach the speech recognition service, even though you appear to be online. This usually means the current network is blocking it — common on school wifi with content filtering — rather than a real connection problem. Try a different network (e.g. a phone hotspot), or ask your school\'s IT team to allow speech recognition.'
 }
