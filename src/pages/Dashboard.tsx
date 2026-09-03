@@ -7,15 +7,41 @@ import { currentTermLabel } from '../lib/term'
 import { CUSTOM_THEME_ID, DEFAULT_CUSTOM_COLORS, DEFAULT_THEME_ID, THEMES } from '../lib/themes'
 import { exportProjectFile, importProjectFile } from '../lib/projectFile'
 import { createId } from '../lib/id'
+import { hasSeenTutorial, markTutorialSeen, onRequestTutorial } from '../lib/tutorial'
 import Modal from '../components/Modal'
+import Coachmarks, { type CoachStep } from '../components/Coachmarks'
 import { IconCopy, IconDownload, IconPlay, IconTrash } from '../components/icons'
 import type { Project } from '../types'
+
+const TOUR_ID = 'dashboard'
+const TOUR_STEPS: CoachStep[] = [
+  {
+    title: 'Welcome to BPL Slides 👋',
+    body: "Build an Exhibition, Senior Portfolio, Gateway Project, or any presentation — entirely in this browser, nothing uploaded anywhere. Here's a quick tour of where things are.",
+  },
+  {
+    target: 'new-project',
+    title: 'Start from a template',
+    body: 'Pick a template — Exhibition, Senior Portfolio, Gateway Project, or a blank deck — a colour theme, and optionally a set of ready-made slides for your industry area.',
+  },
+  {
+    target: 'import-project',
+    title: 'Or bring in a backup',
+    body: 'Already have a project file exported from BPL Slides (a .BPL-Slides.zip)? Import it here to keep working on it, or move it to another browser or device.',
+  },
+  {
+    target: 'help-button',
+    title: "That's the basics",
+    body: 'Come back to this tour any time from this Help button — and once you open a project, the editor has its own quick tour too.',
+  },
+]
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[] | null>(null)
   const [showNew, setShowNew] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showTour, setShowTour] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -25,6 +51,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     refresh()
+  }, [])
+
+  useEffect(() => {
+    if (!hasSeenTutorial(TOUR_ID)) setShowTour(true)
+    return onRequestTutorial(() => setShowTour(true))
   }, [])
 
   async function handleDelete(id: string) {
@@ -89,6 +120,7 @@ export default function Dashboard() {
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
           <button
+            data-tour="import-project"
             onClick={handleImportClick}
             className="rounded-lg border px-4 py-2 text-sm font-medium"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
@@ -97,6 +129,7 @@ export default function Dashboard() {
           </button>
           <input ref={importInputRef} type="file" accept=".zip,.BPL-Slides.zip" className="hidden" onChange={handleImportFile} />
           <button
+            data-tour="new-project"
             onClick={() => setShowNew(true)}
             className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
             style={{ background: 'var(--color-primary)' }}
@@ -177,6 +210,15 @@ export default function Dashboard() {
       </div>
 
       {showNew && <NewProjectModal onClose={() => setShowNew(false)} />}
+      {showTour && (
+        <Coachmarks
+          steps={TOUR_STEPS}
+          onFinish={() => {
+            markTutorialSeen(TOUR_ID)
+            setShowTour(false)
+          }}
+        />
+      )}
     </div>
   )
 }

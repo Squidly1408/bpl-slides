@@ -23,6 +23,7 @@ import { isEditableTarget } from '../lib/dom'
 import { CUSTOM_THEME_ID, DEFAULT_CUSTOM_COLORS, DEFAULT_THEME_ID, getTheme, THEMES } from '../lib/themes'
 import { ibplcSlide, internshipSlide } from '../lib/templates'
 import { CONTENT_STYLES } from '../lib/layouts'
+import { hasSeenTutorial, markTutorialSeen, onRequestTutorial } from '../lib/tutorial'
 import SlideThumbnailRail from '../components/SlideThumbnailRail'
 import SlideStage from '../components/SlideStage'
 import TransitionPicker from '../components/TransitionPicker'
@@ -32,10 +33,52 @@ import IconPickerModal from '../components/IconPickerModal'
 import MathBlockEditorModal from '../components/MathBlockEditorModal'
 import Modal from '../components/Modal'
 import AddBlockMenu from '../components/AddBlockMenu'
+import Coachmarks, { type CoachStep } from '../components/Coachmarks'
 import { IconDownload, IconEdit, IconFileText, IconFolderOpen, IconPlay, IconPlus, IconRedo, IconUndo, IconUpload } from '../components/icons'
 import type { Block, MeshFormat, Slide, TextBlock } from '../types'
 
 const MESH_EXT: Record<string, MeshFormat> = { stl: 'stl', obj: 'obj', glb: 'glb', gltf: 'gltf' }
+
+const TOUR_ID = 'editor'
+// Desktop-only targets (the slide rail / add rail / settings panel are
+// `lg:`-only permanent columns — below that they're drawers instead, see
+// showSlidesDrawer etc.), so Coachmarks' skip-if-not-visible behaviour just
+// means fewer steps show on a narrow screen rather than pointing at nothing.
+const TOUR_STEPS: CoachStep[] = [
+  {
+    title: 'This is the editor',
+    body: "Every project's slides live here — a quick look at where things are before you start building.",
+  },
+  {
+    target: 'slide-rail',
+    placement: 'right',
+    title: 'Your slides',
+    body: 'Add, duplicate, reorder, or delete slides here. Click any thumbnail to jump to it.',
+  },
+  {
+    target: 'add-block-rail',
+    placement: 'right',
+    title: 'Add to the slide',
+    body: 'Insert text, shapes, images, icons, maths, 3D models, or the Learning Flower onto the current slide from here.',
+  },
+  {
+    target: 'slide-canvas',
+    title: 'The canvas',
+    body: 'Drag, resize, and rotate anything. Click a block to select it, then fine-tune it on the right.',
+  },
+  {
+    target: 'settings-panel',
+    placement: 'left',
+    title: 'Theme & block settings',
+    body: "Change the project's colour theme, redesign a slide's layout in one click, or adjust the selected block's properties here.",
+  },
+  {
+    target: 'present-button',
+    placement: 'bottom',
+    title: 'When you’re ready',
+    body: 'Present goes fullscreen — advance with the arrow keys, a click, or your voice.',
+  },
+]
 
 function clampPct(value: number, size: number) {
   return Math.min(Math.max(value, 0), Math.max(0, 100 - size))
@@ -106,6 +149,12 @@ export default function Editor() {
   const [showSlidesDrawer, setShowSlidesDrawer] = useState(false)
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false)
   const [showAddDrawer, setShowAddDrawer] = useState(false)
+  const [showTour, setShowTour] = useState(false)
+
+  useEffect(() => {
+    if (!hasSeenTutorial(TOUR_ID)) setShowTour(true)
+    return onRequestTutorial(() => setShowTour(true))
+  }, [])
 
   useEffect(() => {
     if (id) loadProject(id)
@@ -570,6 +619,7 @@ export default function Editor() {
             <IconFileText size={14} /> <span className="hidden md:inline">{exporting === 'pptx' ? 'Exporting…' : 'Export .pptx'}</span>
           </button>
           <button
+            data-tour="present-button"
             onClick={() => navigate(`/project/${project.id}/present`)}
             className="flex items-center gap-1 rounded-md px-2.5 py-1.5 font-semibold text-white sm:px-3"
             style={{ background: theme.primary }}
@@ -580,7 +630,7 @@ export default function Editor() {
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <div className="hidden lg:flex lg:h-full">
+        <div data-tour="slide-rail" className="hidden lg:flex lg:h-full">
           <SlideThumbnailRail
             slides={project.slides}
             currentSlideId={currentSlideId}
@@ -600,6 +650,7 @@ export default function Editor() {
         </div>
 
         <div
+          data-tour="add-block-rail"
           className="scrollbar-thin hidden shrink-0 overflow-y-auto border-r lg:block"
           style={{ borderColor: 'var(--color-border)' }}
         >
@@ -632,7 +683,7 @@ export default function Editor() {
           </div>
 
           {currentSlide && (
-            <div className="w-full max-w-4xl overflow-hidden rounded-xl shadow-lg" style={{ boxShadow: 'var(--shadow-lg)' }}>
+            <div data-tour="slide-canvas" className="w-full max-w-4xl overflow-hidden rounded-xl shadow-lg" style={{ boxShadow: 'var(--shadow-lg)' }}>
               <div className="aspect-video w-full">
                 <SlideStage
                   slide={currentSlide}
@@ -652,7 +703,7 @@ export default function Editor() {
         </div>
 
         {currentSlide && (
-          <div className="scrollbar-thin hidden w-72 shrink-0 overflow-y-auto border-l p-4 lg:block" style={{ borderColor: 'var(--color-border)' }}>
+          <div data-tour="settings-panel" className="scrollbar-thin hidden w-72 shrink-0 overflow-y-auto border-l p-4 lg:block" style={{ borderColor: 'var(--color-border)' }}>
             {renderSettingsPanel(currentSlide)}
           </div>
         )}
@@ -714,6 +765,16 @@ export default function Editor() {
           onCreateMath={handleAddMathExpression}
           onCreatePhoto={handleAddMathPhoto}
           onClose={() => setShowMathModal(false)}
+        />
+      )}
+
+      {showTour && (
+        <Coachmarks
+          steps={TOUR_STEPS}
+          onFinish={() => {
+            markTutorialSeen(TOUR_ID)
+            setShowTour(false)
+          }}
         />
       )}
     </div>

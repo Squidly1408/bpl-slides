@@ -1,19 +1,10 @@
-import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
-import TutorialModal from './TutorialModal'
 import { IconHelp } from './icons'
-import { hasSeenTutorial } from '../lib/tutorial'
+import { requestTutorial } from '../lib/tutorial'
 
 export default function Layout() {
-  const [showTutorial, setShowTutorial] = useState(false)
-
-  // Auto-open once, the first time anyone lands in the app in this browser.
-  useEffect(() => {
-    if (!hasSeenTutorial()) setShowTutorial(true)
-  }, [])
-
   return (
     <div className="flex min-h-full flex-col">
       <header style={{ background: '#12172a' }}>
@@ -29,8 +20,12 @@ export default function Layout() {
             <Link to="/draw" className="hover:underline">
               Whiteboard
             </Link>
+            {/* Re-triggers whichever tour belongs to the page currently on
+                screen — see lib/tutorial.ts's pub/sub. Dashboard/Editor each
+                subscribe while mounted and show their own Coachmarks tour. */}
             <button
-              onClick={() => setShowTutorial(true)}
+              data-tour="help-button"
+              onClick={() => requestTutorial()}
               title="How this works"
               aria-label="How this works"
               className="flex h-8 w-8 items-center justify-center rounded-md border"
@@ -42,7 +37,6 @@ export default function Layout() {
           </nav>
         </div>
       </header>
-      {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
       <main className="flex-1">
         <Outlet />
       </main>

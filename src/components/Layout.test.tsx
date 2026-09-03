@@ -1,13 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import Layout from './Layout'
-import { markTutorialSeen } from '../lib/tutorial'
-
-afterEach(() => {
-  localStorage.clear()
-})
+import * as tutorial from '../lib/tutorial'
 
 function renderLayout() {
   return render(
@@ -22,25 +18,18 @@ function renderLayout() {
 }
 
 describe('Layout', () => {
-  it('auto-opens the tutorial the first time, in an unseen browser', () => {
+  it('renders the page content passed via the router outlet', () => {
     renderLayout()
-    expect(screen.getByText(/Welcome to BPL Slides/)).toBeInTheDocument()
+    expect(screen.getByText('page content')).toBeInTheDocument()
   })
 
-  it('does not auto-open the tutorial once it has already been seen', () => {
-    markTutorialSeen()
-    renderLayout()
-    expect(screen.queryByText(/Welcome to BPL Slides/)).not.toBeInTheDocument()
-  })
-
-  it('the Help button reopens the tutorial even after it has been seen', async () => {
-    markTutorialSeen()
+  it('the Help button asks whichever page is mounted to show its tour', async () => {
+    const spy = vi.spyOn(tutorial, 'requestTutorial')
     const user = userEvent.setup()
     renderLayout()
-    expect(screen.queryByText(/Welcome to BPL Slides/)).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'How this works' }))
 
-    expect(screen.getByText(/Welcome to BPL Slides/)).toBeInTheDocument()
+    expect(spy).toHaveBeenCalledTimes(1)
   })
 })
