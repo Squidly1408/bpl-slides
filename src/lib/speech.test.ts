@@ -128,14 +128,14 @@ describe('startVoiceNav', () => {
     expect(onError.mock.calls[0][0]).toMatch(/current network is blocking it/i)
   })
 
-  it('a "network" recognition error in Brave blames Shields specifically', async () => {
+  it('a "network" recognition error in Brave says it is unavailable there, not a network problem', async () => {
     setBrave(true)
     const onError = vi.fn()
     startVoiceNav(vi.fn(), vi.fn(), onError)
     await vi.waitFor(() => expect(lastRecognition).not.toBeNull())
     lastRecognition!.onerror!({ error: 'network' })
     expect(onError.mock.calls[0][0]).toMatch(/brave/i)
-    expect(onError.mock.calls[0][0]).toMatch(/shields/i)
+    expect(onError.mock.calls[0][0]).not.toMatch(/current network is blocking/i)
   })
 
   it('a transient "no-speech" error is not reported', async () => {

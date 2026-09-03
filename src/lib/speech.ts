@@ -60,15 +60,21 @@ function isBrave(): boolean {
  * The browser's SpeechRecognition throws a "network" error whenever it can't
  * reach its speech-recognition service — but that's NOT the same thing as
  * "you have no internet connection". It also fires while genuinely online,
- * for two common reasons that need different fixes, so this message is
+ * for two different reasons that need different fixes, so this message is
  * chosen at the point of failure rather than a single static string:
  *
- * - Brave blocks Google's speech-to-text backend by default as part of
- *   Shields — this reproduces on *every* network, not just one, which is
- *   the tell that distinguishes it from the next case.
+ * - Brave ships without the Google API key Chromium normally bundles for
+ *   this feature, as a deliberate privacy choice — so it's not something
+ *   Shields (or any other per-site/per-network setting) controls, and
+ *   there's no way to turn it back on. (An earlier version of this message
+ *   pointed at Shields specifically; a user testing with Shields fully off
+ *   still hit the same error, confirming that guess was wrong.) It reliably
+ *   fails on every network, which is what distinguishes it from the next
+ *   case below.
  * - A school/organisation network's content filter (Securly, GoGuardian,
  *   Cisco Umbrella, a proxy, etc.) blocks the specific cloud endpoint the
- *   browser needs for it, even though ordinary browsing still works fine.
+ *   browser needs for it, even though ordinary browsing still works fine —
+ *   this one *is* fixable (a different network, or asking IT).
  *
  * Asserting "you're offline" when neither is actually true is actively
  * wrong and sends a student chasing the wrong fix.
@@ -78,7 +84,7 @@ function networkErrorMessage(): string {
     return 'Voice navigation needs an internet connection (it uses your browser\'s speech service) — you appear to be offline right now.'
   }
   if (isBrave()) {
-    return 'Voice navigation couldn\'t reach the speech recognition service. This looks like Brave, which blocks Google\'s speech service by default as part of Shields — click the Brave lion icon in the address bar and turn Shields down (or off) for this site, then try again.'
+    return 'Voice navigation isn\'t available in Brave — Brave ships without the Google speech service Chromium normally uses for this, as a privacy choice, and there\'s no setting that turns it back on (Shields doesn\'t control this). Everything else in BPL Slides works the same in Brave; for voice navigation specifically, try Chrome or Edge instead.'
   }
   return 'Voice navigation couldn\'t reach the speech recognition service, even though you appear to be online. This usually means the current network is blocking it — common on school wifi with content filtering — rather than a real connection problem. Try a different network (e.g. a phone hotspot), or ask your school\'s IT team to allow speech recognition.'
 }
