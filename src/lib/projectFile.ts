@@ -16,7 +16,7 @@ function collectAssetIds(project: Project): string[] {
 }
 
 /**
- * Exports a project as a single portable .bplproj file (a zip containing the
+ * Exports a project as a single portable .BPL-Slides.zip file (containing the
  * project JSON plus every asset it references). This is how students back up
  * or move a project between browsers/devices, since nothing is stored on a
  * server.
@@ -43,11 +43,11 @@ export async function exportProjectFile(project: Project): Promise<void> {
 
   const blob = await zip.generateAsync({ type: 'blob' })
   const safeName = project.title.replace(/[^a-z0-9\- _]/gi, '').trim() || 'project'
-  saveAs(blob, `${safeName}.bplproj.zip`)
+  saveAs(blob, `${safeName}.BPL-Slides.zip`)
 }
 
 /**
- * Imports a .bplproj.zip file produced by exportProjectFile, restoring the
+ * Imports a .BPL-Slides.zip file produced by exportProjectFile, restoring the
  * project and its assets into local storage under a fresh id (so importing
  * never collides with an existing project).
  */

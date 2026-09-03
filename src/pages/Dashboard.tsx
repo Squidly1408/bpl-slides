@@ -59,7 +59,7 @@ export default function Dashboard() {
       const id = await importProjectFile(file)
       navigate(`/project/${id}/edit`)
     } catch {
-      setError('Could not import that file — make sure it is a .bplproj.zip exported from BPL Slides.')
+      setError('Could not import that file — make sure it is a .BPL-Slides.zip exported from BPL Slides.')
     } finally {
       setBusy(false)
     }
@@ -95,7 +95,7 @@ export default function Dashboard() {
           >
             Import project file
           </button>
-          <input ref={importInputRef} type="file" accept=".zip,.bplproj.zip" className="hidden" onChange={handleImportFile} />
+          <input ref={importInputRef} type="file" accept=".zip,.BPL-Slides.zip" className="hidden" onChange={handleImportFile} />
           <button
             onClick={() => setShowNew(true)}
             className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
