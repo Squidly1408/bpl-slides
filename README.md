@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/readMe_banner.png" alt="BPL Slides" width="600">
+</p>
+
 # BPL Slides
 
 A client-side tool for Big Picture Learning students to turn a term's work into a designed exhibition slideshow — build it, present it, done. Nothing is uploaded anywhere: every project, file, drawing, and recording is stored locally in your browser.
@@ -59,13 +63,14 @@ src/
 
 - CAD viewer supports mesh formats only (STL/OBJ/glTF/GLB) — true CAD formats (STEP/IGES) would need a WASM CAD kernel.
 - Auto-fill is offline/heuristic, not AI-summarised, by design (nothing leaves the browser).
-- `.pptx` export carries over position, rotation, colour (including gradients, approximated as a flat midpoint fill — pptxgenjs shapes don't support true gradients), shadow, background (including background images), and image fit for every block — text, shapes (mapped to matching native PowerPoint autoshapes per kind), images, drawings, icons, the Learning Flower, and audio/video map to native PowerPoint objects. Icons and the Flower are rasterized to a crisp PNG at export time (a real independent SVG render pass, not an approximation) rather than lost. Maths, 3D model, and website-embed blocks become a labelled placeholder (PowerPoint has no native equivalent for any of the three, and Maths would need a much heavier DOM-to-canvas dependency to rasterize faithfully). Export always uses the in-editor state directly (not a possibly-stale autosave read), so it matches what's on screen. `.pptx` *import* is still best-effort and doesn't recover the original file's layout/animations.
+- `.pptx` export carries over position, rotation, colour (including gradients, approximated as a flat midpoint fill — pptxgenjs shapes don't support true gradients), shadow, background (including background images), and image fit for every block — text, shapes (mapped to matching native PowerPoint autoshapes per kind), images, drawings, icons, the Learning Flower, and audio/video map to native PowerPoint objects. Icons and the Flower are rasterized to a crisp PNG at export time (a real independent SVG render pass, not an approximation) rather than lost. Maths, 3D model, and website-embed blocks become a labelled placeholder (PowerPoint has no native equivalent for any of the three, and Maths would need a much heavier DOM-to-canvas dependency to rasterize faithfully). Export always uses the in-editor state directly (not a possibly-stale autosave read), so it matches what's on screen. `.pptx` _import_ is still best-effort and doesn't recover the original file's layout/animations.
 - The Maths tool is typed-only (LaTeX via KaTeX), not photo-to-maths OCR — real handwriting recognition needs a cloud service (e.g. Mathpix), which would mean sending student photos to a third party and breaking the app's nothing-leaves-the-browser design. A photo of maths can still be attached as a plain, un-digitised image.
 - The Icon set (Font Awesome Free) is icons under CC BY 4.0 and code under MIT; the Maths renderer (KaTeX) is MIT — both bundled locally, not loaded from a CDN. See `/terms` for the full attribution.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Bundled third-party assets (Font Awesome Free, KaTeX) keep their own licenses; see that file for details.
+All rights reserved — see [LICENSE](LICENSE). Bundled third-party assets (Font Awesome Free, KaTeX) keep their own licenses; see that file for details.
+
 - Voice navigation needs an internet connection — the browser's speech recognition (`SpeechRecognition`/`webkitSpeechRecognition`) sends audio to a cloud speech service (e.g. Google's, in Chrome) to transcribe it, it isn't done on-device, so it's the one feature that won't work offline even though the rest of the app (including Present mode itself) does. The app checks `navigator.onLine` and warns before you try to enable it while offline. It can also fail with the same kind of error while genuinely online — a school/organisation network's content filter (Securly, GoGuardian, Cisco Umbrella, a proxy, etc.) blocking the specific cloud endpoint is a common cause on school wifi, and the in-app error message says so rather than just claiming "you're offline" when that's not actually why. It also always uses the browser/OS's current default microphone — there's no web API that lets a page pick a different input device, so there's no in-app microphone picker.
 - Drawings are flattened to PNG, not stored as editable vector strokes.
 - The "showcase a website" embed block can't fetch a page's content itself (browser CORS) — it embeds the live page in an iframe instead, which some sites block from embedding.
