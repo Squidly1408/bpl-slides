@@ -14,6 +14,13 @@ export async function parseDocx(file: File): Promise<ParseResult> {
   const { value: html, messages } = await mammoth.convertToHtml(
     { arrayBuffer },
     {
+      // Mammoth's own defaults already cover "Heading 1/2/3" (what Word's
+      // built-in heading styles are named, and what Google Docs' .docx
+      // export uses too); these two catch the other paragraph styles
+      // students' documents commonly title their document/sections with,
+      // which otherwise fell through as an ordinary paragraph and never
+      // started a new slide.
+      styleMap: ["p[style-name='Title'] => h1:fresh", "p[style-name='Subtitle'] => h2:fresh"],
       convertImage: mammoth.images.imgElement(async (image) => {
         const base64 = await image.read('base64')
         return { src: `data:${image.contentType};base64,${base64}` }
@@ -53,6 +60,22 @@ export async function parseDocx(file: File): Promise<ParseResult> {
         if (text) current.bullets.push(text)
         await collectImages(li, current)
       }
+      continue
+    }
+
+    if (el.tagName === 'TABLE') {
+      // Same jumbling problem as lists, one level worse — el.textContent on
+      // a <table> runs every cell in every row together with no separator
+      // at all, e.g. two side-by-side cells "Skills" / "Evidence" reading
+      // as "SkillsEvidence". One bullet per row (cells joined with " — ")
+      // keeps a table's actual structure readable instead.
+      for (const row of Array.from(el.querySelectorAll('tr'))) {
+        const cells = Array.from(row.querySelectorAll('td, th'))
+          .map((cell) => cell.textContent?.trim())
+          .filter((text): text is string => !!text)
+        if (cells.length) current.bullets.push(cells.join(' — '))
+      }
+      await collectImages(el, current)
       continue
     }
 
