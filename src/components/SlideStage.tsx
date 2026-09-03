@@ -98,12 +98,21 @@ export default function SlideStage({
   useEffect(() => {
     onChangeBlockRef.current = onChangeBlock
   }, [onChangeBlock])
+  const onDeleteBlockRef = useRef(onDeleteBlock)
+  useEffect(() => {
+    onDeleteBlockRef.current = onDeleteBlock
+  }, [onDeleteBlock])
   const slideRef = useRef(slide)
   useEffect(() => {
     slideRef.current = slide
   }, [slide])
 
   const [guides, setGuides] = useState<Guides>(NO_GUIDES)
+  // Set while a block is being dragged (moved, not resized) and is at least
+  // partly off the slide — drives the fade-toward-deletion opacity below.
+  // Keyed by block id (rather than a plain boolean) so the right block fades
+  // even though `dragRef` itself isn't reactive.
+  const [dragOverhang, setDragOverhang] = useState<{ blockId: string; visibleFraction: number } | null>(null)
 
   const handleDragMoveRef = useRef((e: PointerEvent) => {
     const drag = dragRef.current
@@ -114,13 +123,30 @@ export default function SlideStage({
     const dyPct = ((e.clientY - drag.startY) / rect.height) * 100
 
     if (drag.mode === 'move') {
-      let x = clamp(drag.origin.x + dxPct, 0, 100 - drag.origin.w)
-      let y = clamp(drag.origin.y + dyPct, 0, 100 - drag.origin.h)
+      // Deliberately unclamped (unlike resize below) — a block can be
+      // dragged partway off any edge, and gets deleted outright the instant
+      // it has no overlap left with the slide at all (see below), so there
+      // is no "out of bounds" position left to clamp against.
+      let x = drag.origin.x + dxPct
+      let y = drag.origin.y + dyPct
       const siblings = slideRef.current.blocks.filter((b) => b.id !== drag.blockId)
       const snapX = snapAxis(x, drag.origin.w, siblings, 'x')
       const snapY = snapAxis(y, drag.origin.h, siblings, 'y')
       x = snapX.pos
       y = snapY.pos
+
+      const overlapW = Math.max(0, Math.min(x + drag.origin.w, 100) - Math.max(x, 0))
+      const overlapH = Math.max(0, Math.min(y + drag.origin.h, 100) - Math.max(y, 0))
+      if (overlapW <= 0 || overlapH <= 0) {
+        // Fully off the slide — drop it right here rather than waiting for
+        // the pointer to come up, so the deletion reads as "let go of the
+        // edge" rather than a separate confirming step.
+        onDeleteBlockRef.current?.(drag.blockId)
+        handleDragEndRef.current()
+        return
+      }
+      const visibleFraction = (overlapW * overlapH) / (drag.origin.w * drag.origin.h)
+      setDragOverhang(visibleFraction < 1 ? { blockId: drag.blockId, visibleFraction } : null)
       setGuides({ v: snapX.guide === null ? [] : [snapX.guide], h: snapY.guide === null ? [] : [snapY.guide] })
       onChangeBlockRef.current?.(drag.blockId, { x, y })
     } else {
@@ -133,6 +159,7 @@ export default function SlideStage({
   const handleDragEndRef = useRef(() => {
     dragRef.current = null
     setGuides(NO_GUIDES)
+    setDragOverhang(null)
     window.removeEventListener('pointermove', handleDragMoveRef.current)
     window.removeEventListener('pointerup', handleDragEndRef.current)
   })
@@ -165,6 +192,7 @@ export default function SlideStage({
         .sort((a, b) => a.zIndex - b.zIndex)
         .map((block) => {
           const selected = editable && block.id === selectedBlockId
+          const overhang = dragOverhang?.blockId === block.id ? dragOverhang : null
           return (
             <div
               key={block.id}
@@ -176,6 +204,11 @@ export default function SlideStage({
                 width: `${block.w}%`,
                 height: `${block.h}%`,
                 transform: block.rotation ? `rotate(${block.rotation}deg)` : undefined,
+                // Fades out as it's dragged past the slide's edge, telegraphing
+                // that letting go now (or dragging further) deletes it — never
+                // fully invisible while still present, so it doesn't look like
+                // it vanished on its own before the actual deletion happens.
+                opacity: overhang ? Math.max(0.25, overhang.visibleFraction) : 1,
                 outline: selected ? '2px solid var(--color-primary)' : editable ? '1px dashed transparent' : 'none',
                 cursor: editable ? 'move' : 'default',
                 touchAction: editable ? 'none' : undefined,
