@@ -7,6 +7,7 @@ import {
   makeShapeBlock,
   makeSlide,
   makeTextBlock,
+  seedZCounterFromSlides,
 } from './blocks'
 
 describe('makeTextBlock', () => {
@@ -105,5 +106,33 @@ describe('cloneBlock', () => {
     if (copy.type !== 'text') throw new Error('expected a text block')
     expect(copy.content).toBe('Keep me')
     expect(copy.color).toBe('#123456')
+  })
+})
+
+describe('seedZCounterFromSlides', () => {
+  it('makes the next new block land above every existing one in the project', () => {
+    const slides = [
+      makeSlide({ blocks: [makeTextBlock({ zIndex: 50 }), makeTextBlock({ zIndex: 80 })] }),
+      makeSlide({ blocks: [makeTextBlock({ zIndex: 65 })] }),
+    ]
+    seedZCounterFromSlides(slides)
+    const newBlock = makeTextBlock()
+    expect(newBlock.zIndex).toBeGreaterThan(80)
+  })
+
+  it('never moves the counter backwards for a project with lower z-indices', () => {
+    // Simulates opening a second, smaller project in the same session —
+    // the counter should keep climbing, not reset down to match it (the
+    // two projects' z-indices are never compared against each other, so
+    // there's no correctness need to lower it, only a collision risk).
+    seedZCounterFromSlides([makeSlide({ blocks: [makeTextBlock({ zIndex: 500 })] })])
+    const before = makeTextBlock().zIndex
+    seedZCounterFromSlides([makeSlide({ blocks: [makeTextBlock({ zIndex: 2 })] })])
+    const after = makeTextBlock()
+    expect(after.zIndex).toBeGreaterThan(before)
+  })
+
+  it('handles slides with no blocks at all', () => {
+    expect(() => seedZCounterFromSlides([makeSlide()])).not.toThrow()
   })
 })

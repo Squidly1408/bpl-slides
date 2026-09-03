@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { getProject, saveProject } from '../lib/db'
 import { createId } from '../lib/id'
-import { cloneBlock, makeSlide } from '../lib/blocks'
+import { cloneBlock, makeSlide, seedZCounterFromSlides } from '../lib/blocks'
 import { applyThemeToProject } from '../lib/applyTheme'
 import { CUSTOM_THEME_ID } from '../lib/themes'
 import type { Block, CustomThemeColors, Project, Slide, TransitionType } from '../types'
@@ -80,10 +80,12 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       set({ status: 'not-found', project: null })
       return
     }
+    seedZCounterFromSlides(project.slides)
     set({ project, status: 'ready' })
   },
 
   setProject(project) {
+    seedZCounterFromSlides(project.slides)
     set({ project, status: 'ready', past: [], future: [] })
     lastEditAt = 0
   },

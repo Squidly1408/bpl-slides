@@ -26,6 +26,25 @@ function nextZ() {
   return zCounter++
 }
 
+/**
+ * Re-syncs the new-block z-index counter against a just-opened project's
+ * existing blocks. Without this, a fresh page load always starts `zCounter`
+ * back at 1 — so opening a project that already has blocks stacked up to,
+ * say, z-index 20 and then adding a new one handed it z-index 1, silently
+ * burying it behind everything already on the slide (and "bring forward"
+ * needed a dozen clicks to catch back up). Called from the project store on
+ * every loadProject/setProject — see store/useProjectStore.ts.
+ */
+export function seedZCounterFromSlides(slides: Slide[]) {
+  let max = 0
+  for (const slide of slides) {
+    for (const block of slide.blocks) {
+      if (block.zIndex > max) max = block.zIndex
+    }
+  }
+  zCounter = Math.max(zCounter, max + 1)
+}
+
 export function makeTextBlock(partial: Partial<TextBlock> = {}): TextBlock {
   return {
     id: createId(),

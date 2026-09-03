@@ -212,6 +212,24 @@ describe('loadProject / setProject / clear', () => {
     expect(useProjectStore.getState().project).toBeNull()
     expect(useProjectStore.getState().status).toBe('idle')
   })
+
+  it('a newly added block lands above a loaded project\'s existing blocks, even in a fresh session', async () => {
+    // Regression guard: the new-block z-index counter used to start over at
+    // 1 on every page load regardless of what a *loaded* project's blocks
+    // already had, so a block added right after opening an existing,
+    // already-edited project silently landed behind everything on the
+    // slide instead of on top of it.
+    await db.saveProject(
+      makeProject({
+        id: 'stacked',
+        slides: [makeSlide({ id: 's1', blocks: [makeTextBlock({ zIndex: 40 }), makeTextBlock({ zIndex: 90 })] })],
+      }),
+    )
+    await useProjectStore.getState().loadProject('stacked')
+    useProjectStore.getState().addBlock('s1', makeTextBlock({ id: 'new-block' }))
+    const added = useProjectStore.getState().project!.slides[0].blocks.find((b) => b.id === 'new-block')!
+    expect(added.zIndex).toBeGreaterThan(90)
+  })
 })
 
 describe('autosave', () => {
