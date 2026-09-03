@@ -293,3 +293,13 @@ export function IconFlower({ size = 16, ...props }: IconProps) {
     </svg>
   )
 }
+
+export function IconHelp({ size = 16, ...props }: IconProps) {
+  return (
+    <svg {...base(size, props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.8.5-1.2 1-1.2 2" />
+      <path d="M12 17v.1" />
+    </svg>
+  )
+}

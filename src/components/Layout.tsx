@@ -1,8 +1,19 @@
+import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
+import TutorialModal from './TutorialModal'
+import { IconHelp } from './icons'
+import { hasSeenTutorial } from '../lib/tutorial'
 
 export default function Layout() {
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  // Auto-open once, the first time anyone lands in the app in this browser.
+  useEffect(() => {
+    if (!hasSeenTutorial()) setShowTutorial(true)
+  }, [])
+
   return (
     <div className="flex min-h-full flex-col">
       <header style={{ background: '#12172a' }}>
@@ -18,10 +29,20 @@ export default function Layout() {
             <Link to="/draw" className="hover:underline">
               Whiteboard
             </Link>
+            <button
+              onClick={() => setShowTutorial(true)}
+              title="How this works"
+              aria-label="How this works"
+              className="flex h-8 w-8 items-center justify-center rounded-md border"
+              style={{ borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.85)' }}
+            >
+              <IconHelp size={16} />
+            </button>
             <ThemeToggle dark />
           </nav>
         </div>
       </header>
+      {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
       <main className="flex-1">
         <Outlet />
       </main>
