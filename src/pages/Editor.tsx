@@ -41,7 +41,17 @@ function clampPct(value: number, size: number) {
   return Math.min(Math.max(value, 0), Math.max(0, 100 - size))
 }
 
-/** Best-effort reconstruction of a slide's "heading" + "bullet points" from its current text blocks, for the Redesign picker — the heading block (or the first text block, if none is marked as one) becomes the heading; every other text block's lines (minus any "•" bullet markers already on them) become the bullet list. */
+/** Best-effort reconstruction of a slide's "heading" + "bullet points" from its current text blocks, for the Redesign picker — the heading block (or the first text block, if none is marked as one) becomes the heading; every other text block's lines (minus any "•" bullet markers already on them) become the bullet list.
+ *
+ * Several layouts (grid cards, numbered list, timeline, evidence, icon
+ * grid, …) render a decorative number/badge ("01", "+", a bare digit, an
+ * emoji glyph) as its own small text block alongside the real bullet text —
+ * redesigning FROM one of those picked those badges up as if they were
+ * their own bullets otherwise, since they're just as much "a text block on
+ * the slide" as the real content. Bullet content is always a real phrase,
+ * never a bare 1-3 digit number or a 1-2 character glyph, so filtering
+ * those out here (rather than only recognising "•" prefixes) is what
+ * actually fixes it. */
 function extractHeadingAndBullets(slide: Slide): [string, string[]] {
   const textBlocks = slide.blocks.filter((b): b is TextBlock => b.type === 'text')
   const headingBlock = textBlocks.find((b) => b.isHeading) ?? textBlocks[0]
@@ -51,6 +61,7 @@ function extractHeadingAndBullets(slide: Slide): [string, string[]] {
     .flatMap((b) => b.content.split(/\n+/))
     .map((line) => line.replace(/^[•\-*]\s*/, '').trim())
     .filter(Boolean)
+    .filter((line) => !/^\d{1,3}$/.test(line) && [...line].length > 2)
   return [heading, bullets]
 }
 

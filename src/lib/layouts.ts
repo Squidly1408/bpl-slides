@@ -451,6 +451,44 @@ export function timelineSlide(theme: Theme, heading: string, steps: string[]): S
   return makeSlide({ transition: 'slide-left', background: '#ffffff', blocks })
 }
 
+/** A clean, single-column list of full-width numbered rows with hairline
+ * dividers — an agenda/steps feel, distinct from gridCardSlide's
+ * multi-column card grid. */
+export function stackedSlide(theme: Theme, heading: string, bullets: string[], transition: TransitionType = 'fade'): Slide {
+  const region: Region = { x: 8, y: 27, w: 84, h: 63 }
+  const rowH = region.h / Math.max(1, bullets.length)
+  const badge = circle(4.4)
+  const blocks: Slide['blocks'] = [
+    makeShapeBlock({ x: 8, y: 7, w: 9, h: 0.9, color: theme.accent, radius: 50 }),
+    makeTextBlock({ content: heading, x: 8, y: 9, w: 84, h: 14, fontSize: 34, fontWeight: 'bold', color: theme.primaryDark }),
+  ]
+  bullets.forEach((b, i) => {
+    const rowY = region.y + i * rowH
+    const badgeY = rowY + rowH / 2 - badge.h / 2
+    blocks.push(
+      makeShapeBlock({ x: region.x, y: badgeY, w: badge.w, h: badge.h, color: theme.primary, gradientTo: theme.primaryDark, radius: 50, shadow: true }),
+      makeTextBlock({ content: String(i + 1).padStart(2, '0'), x: region.x, y: badgeY, w: badge.w, h: badge.h, fontSize: 15, fontWeight: 'bold', align: 'center', valign: 'middle', color: theme.onPrimary }),
+      makeTextBlock({ content: b, x: region.x + badge.w + 4, y: rowY, w: region.w - badge.w - 4, h: rowH, fontSize: 18, valign: 'middle', color: '#211f1a' }),
+    )
+    if (i < bullets.length - 1) {
+      blocks.push(makeShapeBlock({ x: region.x, y: rowY + rowH - 0.15, w: region.w, h: 0.12, color: theme.surfaceTint, radius: 0 }))
+    }
+  })
+  return makeSlide({ transition, background: '#ffffff', blocks })
+}
+
+/** Understated: generous whitespace, a thin accent tick, no band/card/corner
+ * glow — a quiet alternative for a deck that wants restraint rather than
+ * bold colour blocking. */
+export function minimalSlide(theme: Theme, heading: string, bullets: string[], transition: TransitionType = 'fade'): Slide {
+  const blocks: Slide['blocks'] = [
+    makeShapeBlock({ x: 8, y: 15, w: 3.5, h: 0.55, color: theme.accent, radius: 50 }),
+    makeTextBlock({ content: heading, x: 8, y: 18, w: 84, h: 15, fontSize: 40, fontWeight: 'bold', color: '#211f1a' }),
+    ...bulletBlocks(theme, bullets, { x: 8, y: 40, w: 62, h: 52 }, { markerColor: theme.accent, fontSize: 19 }),
+  ]
+  return makeSlide({ transition, background: '#ffffff', blocks })
+}
+
 /** The heading+bullets "content" layouts, as a picker-friendly registry — used
  * both to redesign an existing slide (Editor) and to give industry packs
  * genuinely different looks rather than reusing one layout with new words. */
@@ -460,4 +498,6 @@ export const CONTENT_STYLES: { id: string; name: string; build: (theme: Theme, h
   { id: 'bar', name: 'Accent bar', build: (t, h, b) => bulletSlide(t, h, b) },
   { id: 'cover', name: 'Bold cover', build: coverSlide },
   { id: 'cards', name: 'Grid cards', build: gridCardSlide },
+  { id: 'stacked', name: 'Numbered list', build: (t, h, b) => stackedSlide(t, h, b) },
+  { id: 'minimal', name: 'Minimal', build: (t, h, b) => minimalSlide(t, h, b) },
 ]
