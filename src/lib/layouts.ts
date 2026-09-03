@@ -500,4 +500,11 @@ export const CONTENT_STYLES: { id: string; name: string; build: (theme: Theme, h
   { id: 'cards', name: 'Grid cards', build: gridCardSlide },
   { id: 'stacked', name: 'Numbered list', build: (t, h, b) => stackedSlide(t, h, b) },
   { id: 'minimal', name: 'Minimal', build: (t, h, b) => minimalSlide(t, h, b) },
+  // A big, full-bleed divider/section-break slide — reuses heroSlide (the
+  // same gradient-wash, layered-circle hero used for a deck's opening
+  // slide) rather than inventing a second version of it. The bullets don't
+  // fit a title card's minimal one-line-of-context feel as a full list, so
+  // they're folded into a single "·"-joined subtitle instead of being
+  // dropped — redesigning shouldn't silently lose content.
+  { id: 'title', name: 'Title card', build: (t, h, b) => heroSlide(t, h, b.join(' · ') || undefined) },
 ]

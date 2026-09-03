@@ -134,7 +134,36 @@ export async function exportProjectToPptx(project: Project): Promise<void> {
         if (!asset) continue
         const data = await blobToDataUri(asset.blob)
         const fit = block.type === 'image' ? block.fit : 'contain'
-        s.addImage({ data, x, y, w, h, rotate, sizing: { type: fit === 'cover' ? 'cover' : 'contain', w, h } })
+        const radius = block.type === 'image' ? (block.radius ?? 0) : 0
+        s.addImage({
+          data,
+          x,
+          y,
+          w,
+          h,
+          rotate,
+          sizing: { type: fit === 'cover' ? 'cover' : 'contain', w, h },
+          // pptxgenjs's own image rounding is boolean-only (a full oval
+          // crop) — only a good match once the block is basically a circle;
+          // anything less is approximated below with an outline shape
+          // instead, same as the border.
+          rounding: radius >= 45,
+        })
+        if (block.type === 'image' && block.borderWidth) {
+          // addImage has no border/stroke option at all, so a borderless
+          // outline shape drawn in the same box is the only way to show one —
+          // 'none' fill keeps the image itself fully visible underneath it.
+          s.addShape(pptx.ShapeType.roundRect, {
+            x,
+            y,
+            w,
+            h,
+            rotate,
+            rectRadius: radius >= 45 ? Math.min(w, h) / 2 : (radius / 100) * Math.min(w, h),
+            fill: { type: 'none' },
+            line: { color: (block.borderColor ?? '#211f1a').replace('#', ''), width: block.borderWidth * 0.75 },
+          })
+        }
       } else if (block.type === 'video') {
         const asset = await getAsset(block.assetId)
         if (!asset) continue
@@ -245,7 +274,10 @@ function flowerGraphInnerSvg(levels: Record<string, number>): string {
   const rings = FLOWER_RING_RADII.map((r) => `<circle cx="${FLOWER_CENTER}" cy="${FLOWER_CENTER}" r="${r}" stroke="#adadad" stroke-width="2.5" fill="none"/>`).join('')
   const petals = FLOWER_GOALS.map((goal) => {
     const scale = flowerLevelToScale(levels[goal.label] ?? 3)
-    return `<path d="${goal.path}" fill="${goal.color}" style="transform:scale(${scale});transform-origin:center;transform-box:fill-box"/>`
+    // transform-box:view-box (not the default fill-box) is what makes this
+    // scale from the flower's actual centre point rather than each petal's
+    // own bounding-box middle — see FlowerGraphBlock.tsx for the full story.
+    return `<path d="${goal.path}" fill="${goal.color}" style="transform:scale(${scale});transform-origin:center;transform-box:view-box"/>`
   }).join('')
   return `<g transform="rotate(${FLOWER_ROTATION_DEG}, ${FLOWER_CENTER}, ${FLOWER_CENTER})"><g>${rings}</g><g>${petals}</g></g>`
 }
@@ -256,7 +288,7 @@ function flowerGraphInnerSvg(levels: Record<string, number>): string {
  * crispness. Used for icon and Learning-Flower blocks — both are vector
  * paths, not DOM/CSS layout, so a real independent SVG rendering pass (via
  * an off-screen `Image`, which the browser rasterizes exactly like it would
- * any other SVG — including correctly honouring `transform-box: fill-box`)
+ * any other SVG — including correctly honouring `transform-box: view-box`)
  * gives a pixel-accurate result without hand-rolling any of that geometry.
  */
 function rasterizeSvg(innerSvg: string, viewBoxW: number, viewBoxH: number): Promise<string> {

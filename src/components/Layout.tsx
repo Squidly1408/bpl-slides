@@ -8,7 +8,14 @@ export default function Layout() {
       <header style={{ background: '#12172a' }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
           <Link to="/" className="flex items-center gap-2 font-semibold text-lg text-white">
-            <Logo size={32} />
+            {/* This header's background is a fixed dark navy in both light and
+                dark app theme (see the inline style above) — Logo's own default
+                fill is `var(--color-primary)`, which in light mode is ALSO a
+                dark navy (for use as an accent on light backgrounds elsewhere),
+                so it rendered near-invisible here specifically in light mode.
+                Pinned to a fixed light blue that reads clearly against this
+                particular header regardless of the site theme toggle. */}
+            <Logo size={32} color="#82a6dd" />
             <span>BPL Slides</span>
           </Link>
           <nav className="flex items-center gap-3 text-sm sm:gap-4" style={{ color: 'rgba(255,255,255,0.85)' }}>
@@ -32,7 +39,7 @@ export default function Layout() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4">
           <span>
             A student-built tool designed for Big Picture Learning, aligned with BPLA's Exhibition, Senior Portfolio,
-            Gateway Certificate, and IBPLC framework — not an official BPLA product.
+            Gateway Project, and IBPLC framework — not an official BPLA product.
           </span>
           <Link to="/privacy" className="hover:underline">
             Privacy Policy

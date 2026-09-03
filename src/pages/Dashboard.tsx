@@ -80,7 +80,7 @@ export default function Dashboard() {
             Build your exhibition <span style={{ color: 'var(--color-primary)' }}>slideshow</span>
           </h1>
           <p className="mt-3 max-w-xl text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            Exhibition, Senior Portfolio, Gateway Certificate, or any presentation — saved locally in this browser,
+            Exhibition, Senior Portfolio, Gateway Project, or any presentation — saved locally in this browser,
             nothing uploaded anywhere.
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function Dashboard() {
           <div className="rounded-xl border border-dashed p-10 text-center" style={{ borderColor: 'var(--color-border)' }}>
             <p className="mb-3 font-medium">No projects yet</p>
             <p className="mb-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              Start from an Exhibition, Senior Portfolio, or Gateway Certificate template, or upload your term's work
+              Start from an Exhibition, Senior Portfolio, or Gateway Project template, or upload your term's work
               to auto-generate slides.
             </p>
             <button

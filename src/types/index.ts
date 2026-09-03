@@ -91,6 +91,11 @@ export interface ImageBlock extends BlockBase {
   type: 'image'
   assetId: string
   fit: 'contain' | 'cover'
+  /** corner rounding, 0 (square) to 50 (fully round), as % of the shorter side — same convention as ShapeBlock.radius. */
+  radius?: number
+  /** border width in px (authored against the 1280-wide canvas, like fontSize); 0 or unset means no border. */
+  borderWidth?: number
+  borderColor?: string
 }
 
 export interface VideoBlock extends BlockBase {

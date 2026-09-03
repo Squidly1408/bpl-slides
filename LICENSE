@@ -23,7 +23,9 @@ SOFTWARE.
 ---
 
 This project bundles third-party assets under their own licenses:
-- Font Awesome Free icons (@fortawesome/free-solid-svg-icons) — icons under
-  CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), code under MIT.
-  See https://fontawesome.com/license/free.
+- Font Awesome Free icons (@fortawesome/free-solid-svg-icons and
+  @fortawesome/free-brands-svg-icons) — icons under CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/), code under MIT. Brand/logo
+  icons remain trademarks of their respective owners — see
+  https://fontawesome.com/license/free.
 - KaTeX — MIT License. See https://github.com/KaTeX/KaTeX/blob/main/LICENSE.

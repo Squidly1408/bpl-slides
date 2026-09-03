@@ -4,9 +4,19 @@ import type { Block } from '../../types'
 /**
  * The Big Picture Learning Flower, rendered from BPLA's real petal artwork —
  * see lib/flowerData.ts for where every path/colour/ring radius comes from.
- * Each petal's `transform: scale(...)` + `transformOrigin: center` exactly
- * mirrors the source tool's own approach (a CSS transform driven by a
- * slider), so it scales the same way the real one does.
+ * Each petal's `transform: scale(...)` mirrors the source tool's own
+ * approach (a CSS transform driven by a slider).
+ *
+ * `transformBox: 'view-box'` is the important part: it makes `transform-
+ * origin: center` resolve against the *whole SVG's viewBox* (so the
+ * flower's actual centre point, 187.5/187.5) rather than each petal path's
+ * own individual bounding box (the default 'fill-box' reference, and this
+ * component's original — wrong — setting). With the wrong reference box,
+ * every petal scaled from somewhere in the middle of its own teardrop
+ * shape, so the narrow tip anchored at the flower's centre visibly drifted
+ * as the level changed instead of staying put while the petal grew
+ * outward from it, which is the whole point of a "petal length = level"
+ * graphic.
  */
 export default function FlowerGraphBlock({ block }: { block: Extract<Block, { type: 'flowerGraph' }> }) {
   return (
@@ -26,7 +36,7 @@ export default function FlowerGraphBlock({ block }: { block: Extract<Block, { ty
                 key={goal.label}
                 d={goal.path}
                 fill={goal.color}
-                style={{ transform: `scale(${scale})`, transformOrigin: 'center', transformBox: 'fill-box' }}
+                style={{ transform: `scale(${scale})`, transformOrigin: 'center', transformBox: 'view-box' }}
               />
             )
           })}

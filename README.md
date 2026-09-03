@@ -2,11 +2,11 @@
 
 A client-side tool for Big Picture Learning students to turn a term's work into a designed exhibition slideshow — build it, present it, done. Nothing is uploaded anywhere: every project, file, drawing, and recording is stored locally in your browser.
 
-**This is a student-built tool designed for Big Picture Learning, aligned with Big Picture Learning Australia's published framework (Exhibition, Senior Portfolio, Gateway Certificate, IBPLC). It's offered as a potential tool for Big Picture schools, but it is not currently an official BPLA product.**
+**This is a student-built tool designed for Big Picture Learning, aligned with Big Picture Learning Australia's published framework (Exhibition, Senior Portfolio, Gateway Project, IBPLC). It's offered as a potential tool for Big Picture schools, but it is not currently an official BPLA product.**
 
 ## Features
 
-- **Designed templates, not blank slides** — Exhibition, Senior Portfolio (Years 11–12), Gateway Certificate (Years 8–10), and a general-purpose Normal Presentation deck, each built from real BPLA terminology (the six Learning Goals, Learning Through Internship, the IBPLC) using a small "design system" of layouts (colour bands, icon bubbles, evidence cards, timelines) — see `lib/layouts.ts` and `lib/templates.ts`.
+- **Designed templates, not blank slides** — Exhibition, Senior Portfolio (Years 11–12), Gateway Project (Years 8–10), and a general-purpose Normal Presentation deck, each built from real BPLA terminology (the six Learning Goals, Learning Through Internship, the IBPLC) using a small "design system" of layouts (colour bands, icon bubbles, evidence cards, timelines) — see `lib/layouts.ts` and `lib/templates.ts`.
 - **Colour themes** — 10 selectable palettes (default: Indigo) applied across a project's slides; switch theme any time and the whole deck recolours. The active project's theme also tints the editor/present chrome.
 - **Light/dark app theme** — a sun/moon toggle in the header (follows your OS/browser preference by default, remembers an explicit choice). This is the site's own UI theme, separate from a project's slide colour theme above.
 - **Industry slide packs** — 10 industry areas (Trades, Health, Creative Arts, Business, IT, Science, Education, Hospitality, Engineering, Sport), each contributing 3 ready-made slides (overview, skills & tools, evidence) you can drop into any deck.

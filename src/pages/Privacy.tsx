@@ -6,7 +6,7 @@ export default function Privacy() {
       <Section heading="A tool built for Big Picture Learning">
         <p>
           BPL Slides is a student-built tool designed for Big Picture Learning students, aligned with Big Picture
-          Learning Australia's published framework — Exhibition, Senior Portfolio, Gateway Certificate, and the
+          Learning Australia's published framework — Exhibition, Senior Portfolio, Gateway Project, and the
           IBPLC. It is offered as a potential tool for Big Picture schools, but it is not currently an official BPLA
           product, and isn't run, hosted, or endorsed by BPLA or any Big Picture school unless/until adopted by them.
         </p>

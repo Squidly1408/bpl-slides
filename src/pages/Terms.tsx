@@ -6,7 +6,7 @@ export default function Terms() {
       <Section heading="What this is">
         <p>
           BPL Slides is a student-built tool for assembling and presenting Big Picture Learning work — Exhibition,
-          Senior Portfolio, Gateway Certificate, and IBPLC decks. It's built as a potential tool for Big Picture
+          Senior Portfolio, Gateway Project, and IBPLC decks. It's built as a potential tool for Big Picture
           schools and aligned with BPLA's published framework, but it is not currently an official Big Picture
           Learning Australia product and carries no endorsement from BPLA or any Big Picture school unless/until
           adopted by them. Every template is a generic, editable starting point — check your own school's actual
@@ -66,9 +66,12 @@ export default function Terms() {
 
       <Section heading="Third-party components used">
         <p>
-          The Icon tool is built on the Font Awesome Free icon set and the Maths tool on the KaTeX library, both
+          The Icon tool is built on the Font Awesome Free icon set (both the general-purpose "solid" icons and the
+          "brands" set — logos like Facebook, Instagram, and X/Twitter) and the Maths tool on the KaTeX library, both
           bundled with the app under their own open-source licenses (Font Awesome Free: icons CC BY 4.0, code MIT;
-          KaTeX: MIT). Neither is loaded from the internet at runtime — both ship inside the app itself.
+          KaTeX: MIT). Neither is loaded from the internet at runtime — both ship inside the app itself. Brand/logo
+          icons remain trademarks of their respective owners; per Font Awesome's own license terms, only use one to
+          actually represent the company, product, or service it belongs to.
         </p>
       </Section>
 

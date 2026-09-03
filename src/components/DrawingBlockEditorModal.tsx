@@ -29,7 +29,20 @@ export default function DrawingBlockEditorModal({
 
   return (
     <Modal title="Edit drawing" onClose={onClose} width={720}>
-      <div className="h-[60vh]">
+      {/* A drawing block is transparent (so it can sit over other blocks/the
+          slide background), so DrawingCanvas draws nothing opaque behind
+          your strokes — without a backdrop of its own here, the canvas was
+          visually indistinguishable from the modal's own surface behind it.
+          The checkerboard is a common "this area is transparent" convention
+          from image editors; it's just this wrapper's CSS background, not
+          part of the canvas itself, so it never ends up in the exported PNG. */}
+      <div
+        className="h-[60vh] rounded-lg border p-2"
+        style={{
+          borderColor: 'var(--color-border)',
+          background: 'repeating-conic-gradient(#d8d8d8 0% 25%, #f3f3f3 0% 50%) 0 0/24px 24px',
+        }}
+      >
         <DrawingCanvas ref={handleRef} initialImageUrl={existingUrl} transparent />
       </div>
       <div className="mt-4 flex justify-end gap-2">

@@ -233,7 +233,7 @@ export function createSeniorPortfolioTemplate(opts: TemplateOptions = {}): Proje
 }
 
 /**
- * Gateway Certificate deck (Years 8–10) — the junior pathway some Big Picture
+ * Gateway Project deck (Years 8–10) — the junior pathway some Big Picture
  * schools run alongside a student's ROSA, building the habits and body of
  * work that lead into the Senior Portfolio. A generic starting point —
  * confirm the exact requirements and naming with your own school, since this
@@ -243,7 +243,7 @@ export function createGatewayTemplate(opts: TemplateOptions = {}): Project {
   const theme = getTheme(opts.themeId, opts.customTheme)
   const term = opts.termLabel ?? ''
   const slides = [
-    heroSlide(theme, 'My Gateway Certificate', subtitleOf(opts) || 'Student name · Term · Year'),
+    heroSlide(theme, 'My Gateway Project', subtitleOf(opts) || 'Student name · Term · Year'),
     bulletSlide(theme, 'About My Gateway Journey', [
       'What I’ve been working on this term',
       'The projects, subjects, or interests I’ve been exploring',
@@ -259,7 +259,7 @@ export function createGatewayTemplate(opts: TemplateOptions = {}): Project {
     ]),
     closingSlide(theme, 'Questions?', 'Thank you for listening'),
   ]
-  return baseProject(term ? `Gateway Certificate — ${term}` : 'Gateway Certificate', opts, slides)
+  return baseProject(term ? `Gateway Project — ${term}` : 'Gateway Project', opts, slides)
 }
 
 /** A generic, non-BPL-specific deck for any class presentation. */
@@ -292,7 +292,7 @@ export type TemplateId = 'exhibition' | 'senior-portfolio' | 'gateway' | 'normal
 export const TEMPLATE_OPTIONS: { id: TemplateId; name: string; description: string }[] = [
   { id: 'exhibition', name: 'Exhibition', description: 'Termly Senior Portfolio Exhibition — Learning Plan, evidence, reflection.' },
   { id: 'senior-portfolio', name: 'Senior Portfolio', description: 'Years 11–12 — Learning Plan, internship, Learning Goals, and your IBPLC.' },
-  { id: 'gateway', name: 'Gateway Certificate', description: 'Years 8–10 — your journey, skills, and evidence toward Senior Portfolio.' },
+  { id: 'gateway', name: 'Gateway Project', description: 'Years 8–10 — your journey, skills, and evidence toward Senior Portfolio.' },
   { id: 'normal', name: 'Normal presentation', description: 'A clean, general-purpose deck for any class presentation.' },
   { id: 'blank', name: 'Blank deck', description: 'Start from a single title slide.' },
 ]

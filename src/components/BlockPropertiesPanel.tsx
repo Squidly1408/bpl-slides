@@ -264,21 +264,65 @@ function TypeSpecificFields({
           </div>
         </div>
       )
-    case 'image':
+    case 'image': {
+      const hasBorder = !!block.borderWidth
       return (
-        <div>
-          <label className={labelCls}>Fit</label>
-          <select
-            value={block.fit}
-            onChange={(e) => onChange({ fit: e.target.value as 'contain' | 'cover' })}
-            className={inputCls}
-            style={inputStyle}
-          >
-            <option value="contain">Fit (show whole image)</option>
-            <option value="cover">Fill (crop to fit box)</option>
-          </select>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className={labelCls}>Fit</label>
+            <select
+              value={block.fit}
+              onChange={(e) => onChange({ fit: e.target.value as 'contain' | 'cover' })}
+              className={inputCls}
+              style={inputStyle}
+            >
+              <option value="contain">Fit (show whole image)</option>
+              <option value="cover">Fill (crop to fit box)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Corner rounding</label>
+            <input
+              type="range"
+              min={0}
+              max={50}
+              value={block.radius ?? 0}
+              onChange={(e) => onChange({ radius: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Checkbox label="Border" checked={hasBorder} onChange={(v) => onChange({ borderWidth: v ? 4 : 0 })} />
+            {hasBorder && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div>
+                  <label className={labelCls}>Width (px)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={40}
+                    value={block.borderWidth}
+                    onChange={(e) => onChange({ borderWidth: Number(e.target.value) })}
+                    className={inputCls}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Colour</label>
+                  <input
+                    type="color"
+                    value={block.borderColor ?? '#211f1a'}
+                    onChange={(e) => onChange({ borderColor: e.target.value })}
+                    className="h-9 w-full rounded-lg border p-1"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )
+    }
     case 'video':
       return (
         <div className="flex flex-col gap-2 text-sm">

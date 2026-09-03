@@ -70,7 +70,15 @@ export default function BlockRenderer({ block, interactive, scale = 1 }: { block
       )
     }
     case 'image':
-      return <ImageContent assetId={block.assetId} fit={block.fit} />
+      return (
+        <ImageContent
+          assetId={block.assetId}
+          fit={block.fit}
+          radius={block.radius}
+          borderWidth={block.borderWidth ? block.borderWidth * scale : undefined}
+          borderColor={block.borderColor}
+        />
+      )
     case 'video':
       return <VideoContent block={block} interactive={interactive} />
     case 'audio':
@@ -94,10 +102,38 @@ export default function BlockRenderer({ block, interactive, scale = 1 }: { block
   }
 }
 
-function ImageContent({ assetId, fit }: { assetId: string; fit: 'contain' | 'cover' }) {
+function ImageContent({
+  assetId,
+  fit,
+  radius,
+  borderWidth,
+  borderColor,
+}: {
+  assetId: string
+  fit: 'contain' | 'cover'
+  radius?: number
+  borderWidth?: number
+  borderColor?: string
+}) {
   const url = useAssetUrl(assetId)
   if (!url) return <MediaPlaceholder label="Loading image…" />
-  return <img src={url} alt="" className="h-full w-full" style={{ objectFit: fit }} draggable={false} />
+  return (
+    <img
+      src={url}
+      alt=""
+      className="h-full w-full"
+      style={{
+        objectFit: fit,
+        borderRadius: radius ? `${radius}%` : undefined,
+        // A CSS border draws inside the element's own box for images (no
+        // box-sizing surprises here since these are simple leaf elements),
+        // matching how the shape block's own border/rounding reads.
+        border: borderWidth ? `${borderWidth}px solid ${borderColor ?? '#211f1a'}` : undefined,
+        boxSizing: 'border-box',
+      }}
+      draggable={false}
+    />
+  )
 }
 
 function VideoContent({ block, interactive }: { block: Extract<Block, { type: 'video' }>; interactive: boolean }) {
