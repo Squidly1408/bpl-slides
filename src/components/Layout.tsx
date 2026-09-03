@@ -8,14 +8,7 @@ export default function Layout() {
       <header style={{ background: '#12172a' }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
           <Link to="/" className="flex items-center gap-2 font-semibold text-lg text-white">
-            {/* This header's background is a fixed dark navy in both light and
-                dark app theme (see the inline style above) — Logo's own default
-                fill is `var(--color-primary)`, which in light mode is ALSO a
-                dark navy (for use as an accent on light backgrounds elsewhere),
-                so it rendered near-invisible here specifically in light mode.
-                Pinned to a fixed light blue that reads clearly against this
-                particular header regardless of the site theme toggle. */}
-            <Logo size={32} color="#82a6dd" />
+            <Logo size={32} />
             <span>BPL Slides</span>
           </Link>
           <nav className="flex items-center gap-3 text-sm sm:gap-4" style={{ color: 'rgba(255,255,255,0.85)' }}>
