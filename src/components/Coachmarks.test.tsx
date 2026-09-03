@@ -61,6 +61,22 @@ describe('Coachmarks', () => {
     expect(screen.getByText('Look here')).toBeInTheDocument()
   })
 
+  it('spotlights whichever candidate target in an array is actually visible', () => {
+    render(
+      <>
+        <button data-tour="desktop-only" style={{ display: 'none' }}>
+          Desktop
+        </button>
+        <button data-tour="mobile-only">Mobile</button>
+        <Coachmarks
+          steps={[{ target: ['desktop-only', 'mobile-only'], title: 'Responsive step', body: 'body' }]}
+          onFinish={vi.fn()}
+        />
+      </>,
+    )
+    expect(screen.getByText('Responsive step')).toBeInTheDocument()
+  })
+
   it('skips a step whose target does not exist, moving straight to the next', () => {
     renderWithTarget([
       { target: 'missing', title: 'Ghost step', body: '...' },

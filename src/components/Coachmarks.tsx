@@ -1,10 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 export interface CoachStep {
-  /** The step's `data-tour` value to spotlight, e.g. "new-project" for
-   * `<button data-tour="new-project">`. Omit for a plain centered intro/
-   * outro card with no spotlight (typically the first or last step). */
-  target?: string
+  /** The step's `data-tour` value(s) to spotlight, e.g. "new-project" for
+   * `<button data-tour="new-project">`. Several UI elements — like the
+   * editor's side panels, which become drawers below the `lg` breakpoint —
+   * have a desktop and a mobile counterpart that are never both on screen
+   * at once; passing both as an array spotlights whichever one actually is,
+   * so the same tour step works at every viewport size instead of only
+   * describing the desktop layout. Omit entirely for a plain centered
+   * intro/outro card with no spotlight (typically the first or last step). */
+  target?: string | string[]
   title: string
   body: string
   /** Preferred side for the tooltip — falls back automatically to whichever
@@ -36,6 +41,20 @@ function pickSide(rect: DOMRect, preferred: Side, tw: number, th: number): Side 
   if (fits[preferred]) return preferred
   const bySpace = (['bottom', 'top', 'right', 'left'] as Side[]).sort((a, b) => space[b] - space[a])
   return bySpace.find((s) => fits[s]) ?? bySpace[0]
+}
+
+/** Resolves a step's target to whichever named element is actually visible
+ * right now — the first candidate (in order) with a real layout box, since
+ * a desktop-only and mobile-only counterpart are never both present at
+ * once. Returns null if none of them are (e.g. mid-viewport-resize, or the
+ * step doesn't target anything). */
+function resolveTarget(target: string | string[] | undefined): HTMLElement | null {
+  if (!target) return null
+  for (const name of Array.isArray(target) ? target : [target]) {
+    const el = document.querySelector<HTMLElement>(`[data-tour="${name}"]`)
+    if (el && el.offsetParent !== null) return el
+  }
+  return null
 }
 
 function tooltipPosition(rect: DOMRect, side: Side, tw: number, th: number) {
@@ -80,8 +99,8 @@ export default function Coachmarks({ steps, onFinish }: { steps: CoachStep[]; on
       setRect(null)
       return
     }
-    const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`)
-    const r = el?.offsetParent !== null ? el?.getBoundingClientRect() : undefined
+    const el = resolveTarget(step.target)
+    const r = el?.getBoundingClientRect()
     if (!r || r.width === 0 || r.height === 0) {
       if (index < steps.length - 1) setIndex(index + 1)
       else onFinish()
@@ -90,11 +109,13 @@ export default function Coachmarks({ steps, onFinish }: { steps: CoachStep[]; on
     setRect(r)
   }, [index, step, steps.length, onFinish])
 
-  // Keep the spotlight glued to its target through scrolling/resizing.
+  // Keep the spotlight glued to its target through scrolling/resizing — and,
+  // since a resize can cross the desktop/mobile breakpoint mid-tour, re-run
+  // target resolution too rather than re-measuring the same element.
   useEffect(() => {
     if (!step?.target) return
     function remeasure() {
-      const el = document.querySelector<HTMLElement>(`[data-tour="${step!.target}"]`)
+      const el = resolveTarget(step!.target)
       if (el) setRect(el.getBoundingClientRect())
     }
     window.addEventListener('resize', remeasure)

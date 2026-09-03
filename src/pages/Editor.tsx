@@ -24,6 +24,7 @@ import { CUSTOM_THEME_ID, DEFAULT_CUSTOM_COLORS, DEFAULT_THEME_ID, getTheme, THE
 import { ibplcSlide, internshipSlide } from '../lib/templates'
 import { CONTENT_STYLES } from '../lib/layouts'
 import { hasSeenTutorial, markTutorialSeen, onRequestTutorial } from '../lib/tutorial'
+import { useContainedSize } from '../lib/hooks'
 import SlideThumbnailRail from '../components/SlideThumbnailRail'
 import SlideStage from '../components/SlideStage'
 import TransitionPicker from '../components/TransitionPicker'
@@ -40,23 +41,25 @@ import type { Block, MeshFormat, Slide, TextBlock } from '../types'
 const MESH_EXT: Record<string, MeshFormat> = { stl: 'stl', obj: 'obj', glb: 'glb', gltf: 'gltf' }
 
 const TOUR_ID = 'editor'
-// Desktop-only targets (the slide rail / add rail / settings panel are
-// `lg:`-only permanent columns — below that they're drawers instead, see
-// showSlidesDrawer etc.), so Coachmarks' skip-if-not-visible behaviour just
-// means fewer steps show on a narrow screen rather than pointing at nothing.
+// The slide rail / add rail / settings panel are permanent side columns on
+// desktop but collapse into drawer-trigger buttons below the `lg` breakpoint
+// (see showSlidesDrawer etc.) — never both on screen at once. Each of those
+// steps lists both the desktop and mobile/tablet element as candidate
+// targets, so Coachmarks spotlights whichever one is actually rendered
+// rather than the tour silently losing steps on a smaller screen.
 const TOUR_STEPS: CoachStep[] = [
   {
     title: 'This is the editor',
     body: "Every project's slides live here — a quick look at where things are before you start building.",
   },
   {
-    target: 'slide-rail',
+    target: ['slide-rail', 'slides-drawer-button'],
     placement: 'right',
     title: 'Your slides',
-    body: 'Add, duplicate, reorder, or delete slides here. Click any thumbnail to jump to it.',
+    body: 'Add, duplicate, reorder, or delete slides here. On a touch screen, this opens as a panel — tap any thumbnail to jump to it.',
   },
   {
-    target: 'add-block-rail',
+    target: ['add-block-rail', 'add-drawer-button'],
     placement: 'right',
     title: 'Add to the slide',
     body: 'Insert text, shapes, images, icons, maths, 3D models, or the Learning Flower onto the current slide from here.',
@@ -64,13 +67,13 @@ const TOUR_STEPS: CoachStep[] = [
   {
     target: 'slide-canvas',
     title: 'The canvas',
-    body: 'Drag, resize, and rotate anything. Click a block to select it, then fine-tune it on the right.',
+    body: 'Drag, resize, and rotate anything. Tap a block to select it, then fine-tune it in settings.',
   },
   {
-    target: 'settings-panel',
+    target: ['settings-panel', 'settings-drawer-button'],
     placement: 'left',
     title: 'Theme & block settings',
-    body: "Change the project's colour theme, redesign a slide's layout in one click, or adjust the selected block's properties here.",
+    body: "Change the project's colour theme, redesign a slide's layout in one tap, or adjust the selected block's properties here.",
   },
   {
     target: 'present-button',
@@ -150,6 +153,7 @@ export default function Editor() {
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false)
   const [showAddDrawer, setShowAddDrawer] = useState(false)
   const [showTour, setShowTour] = useState(false)
+  const [canvasWrapRef, canvasSize] = useContainedSize<HTMLDivElement>(16 / 9)
 
   useEffect(() => {
     if (!hasSeenTutorial(TOUR_ID)) setShowTour(true)
@@ -559,7 +563,14 @@ export default function Editor() {
   return (
     <div className="flex h-[calc(100vh-57px)] flex-col" style={themeVars}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-3 py-2 sm:px-4" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        {/* min-w-[9rem] (not min-w-0) is deliberate: on a tablet-width screen
+            the action buttons to the right show full text labels and
+            comfortably fit `justify-between`'s leftover space on their own,
+            which — with no minimum here — let them squeeze the title down
+            to a sliver ("My Exh…" instead of the actual title). Giving the
+            title row a floor forces the buttons to wrap to their own line
+            first instead. */}
+        <div className="flex min-w-[9rem] flex-1 items-center gap-2 sm:gap-3">
           <button onClick={() => navigate('/')} className="shrink-0 text-sm" style={{ color: 'var(--color-text-muted)' }} aria-label="Back to projects">
             ←
           </button>
@@ -658,24 +669,27 @@ export default function Editor() {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col items-center gap-3 overflow-y-auto p-3 sm:p-6" style={{ background: 'var(--color-bg)' }}>
-          <div className="flex w-full max-w-4xl items-center justify-center gap-2 text-sm lg:hidden">
+          <div className="flex w-full max-w-4xl shrink-0 items-center justify-center gap-2 text-sm lg:hidden">
             <button
+              data-tour="slides-drawer-button"
               onClick={() => setShowSlidesDrawer(true)}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <IconFolderOpen size={15} /> Slides ({project.slides.length})
             </button>
             <button
+              data-tour="add-drawer-button"
               onClick={() => setShowAddDrawer(true)}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <IconPlus size={15} /> Add
             </button>
             <button
+              data-tour="settings-drawer-button"
               onClick={() => setShowSettingsDrawer(true)}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5"
               style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
             >
               <IconEdit size={15} /> {selectedBlock ? 'Block' : 'Slide'} settings
@@ -683,8 +697,21 @@ export default function Editor() {
           </div>
 
           {currentSlide && (
-            <div data-tour="slide-canvas" className="w-full max-w-4xl overflow-hidden rounded-xl shadow-lg" style={{ boxShadow: 'var(--shadow-lg)' }}>
-              <div className="aspect-video w-full">
+            // The extra flex/min-h-0 wrapper (rather than sizing the canvas
+            // itself off `w-full`) is what lets the canvas use up available
+            // *height* too, not just width — on a narrow-but-tall viewport
+            // (most phones/tablets in portrait), a purely width-driven
+            // aspect-video box left most of the screen below it empty.
+            // useContainedSize measures this wrapper and gives the canvas
+            // its exact pixel size to fill whichever dimension is tighter;
+            // the aspect-video/w-full classes are just the first-paint
+            // fallback before that measurement lands.
+            <div ref={canvasWrapRef} className="flex min-h-0 w-full max-w-4xl flex-1 items-center justify-center">
+              <div
+                data-tour="slide-canvas"
+                className="aspect-video w-full overflow-hidden rounded-xl shadow-lg"
+                style={canvasSize.width ? { width: canvasSize.width, height: canvasSize.height, boxShadow: 'var(--shadow-lg)' } : { boxShadow: 'var(--shadow-lg)' }}
+              >
                 <SlideStage
                   slide={currentSlide}
                   editable
