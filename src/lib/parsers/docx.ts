@@ -4,6 +4,28 @@ import type { ParseResult, ParsedSlideDraft } from './types'
 const HEADING_TAGS = new Set(['H1', 'H2', 'H3'])
 
 /**
+ * Like `el.textContent.trim()`, except a manual line break (Shift+Enter in
+ * Word — mammoth renders it as a bare `<br>`, with no text node of its own)
+ * becomes a space instead of vanishing outright. Plain `.textContent`
+ * silently drops a `<br>` and everything before/after it ends up jammed
+ * together with zero separation — "…solar panels.Second line…" instead of
+ * "…solar panels. Second line…" — for what's an extremely common piece of
+ * formatting in a student's own writing, not an edge case.
+ */
+function textWithBreaks(el: Element): string {
+  let out = ''
+  for (const node of Array.from(el.childNodes)) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += node.textContent ?? ''
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const child = node as Element
+      out += child.tagName === 'BR' ? ' ' : textWithBreaks(child)
+    }
+  }
+  return out
+}
+
+/**
  * Heuristically splits a .docx file into slide drafts: each top-level
  * heading starts a new slide, paragraphs and images that follow it are
  * attached to that slide. Runs entirely client-side via mammoth.js.
@@ -45,7 +67,7 @@ export async function parseDocx(file: File): Promise<ParseResult> {
   for (const el of Array.from(doc.body.children)) {
     if (HEADING_TAGS.has(el.tagName)) {
       if (started) slides.push(current)
-      current = { heading: el.textContent?.trim() || undefined, paragraphs: [], bullets: [], images: [] }
+      current = { heading: textWithBreaks(el).trim() || undefined, paragraphs: [], bullets: [], images: [] }
       started = true
       continue
     }
@@ -56,7 +78,7 @@ export async function parseDocx(file: File): Promise<ParseResult> {
       // every item together with no separator, which is what made auto-fill
       // read as one jumbled block of text.
       for (const li of Array.from(el.querySelectorAll(':scope > li'))) {
-        const text = li.textContent?.trim()
+        const text = textWithBreaks(li).trim()
         if (text) current.bullets.push(text)
         await collectImages(li, current)
       }
@@ -64,29 +86,30 @@ export async function parseDocx(file: File): Promise<ParseResult> {
     }
 
     if (el.tagName === 'TABLE') {
-      // Same jumbling problem as lists, one level worse — el.textContent on
-      // a <table> runs every cell in every row together with no separator
-      // at all, e.g. two side-by-side cells "Skills" / "Evidence" reading
-      // as "SkillsEvidence". One bullet per row (cells joined with " — ")
-      // keeps a table's actual structure readable instead.
-      for (const row of Array.from(el.querySelectorAll('tr'))) {
-        const cells = Array.from(row.querySelectorAll('td, th'))
-          .map((cell) => cell.textContent?.trim())
-          .filter((text): text is string => !!text)
-        if (cells.length) current.bullets.push(cells.join(' — '))
-      }
+      // A real grid block (same as a spreadsheet's rows — see
+      // lib/parsers/xlsx.ts) rather than flattening rows into bullet text:
+      // still keeps its actual row/column structure once it's on the slide,
+      // instead of "Item — Cost" reading like a plain list.
+      const rows = Array.from(el.querySelectorAll('tr')).map((row) =>
+        Array.from(row.querySelectorAll('td, th')).map((cell) => textWithBreaks(cell).trim()),
+      )
+      const width = Math.max(0, ...rows.map((r) => r.length))
+      const grid = rows
+        .filter((r) => r.some((cell) => cell))
+        .map((r) => Array.from({ length: width }, (_, i) => r[i] ?? ''))
+      if (grid.length) current.grids = [...(current.grids ?? []), grid]
       await collectImages(el, current)
       continue
     }
 
-    const text = el.textContent?.trim()
+    const text = textWithBreaks(el).trim()
     if (text) current.paragraphs.push(text)
     await collectImages(el, current)
   }
   if (started) slides.push(current)
 
   return {
-    slides: slides.filter((s) => s.heading || s.paragraphs.length || s.bullets.length || s.images.length),
+    slides: slides.filter((s) => s.heading || s.paragraphs.length || s.bullets.length || s.images.length || s.grids?.length),
     warnings,
   }
 }

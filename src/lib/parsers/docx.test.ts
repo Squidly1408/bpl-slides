@@ -39,13 +39,34 @@ describe('parseDocx', () => {
     expect(result.slides[1]).toMatchObject({ heading: 'Details', paragraphs: ['Second point.'] })
   })
 
+  it('treats a manual line break (Shift+Enter) as a space, not nothing', async () => {
+    // mammoth renders a manual line break as a bare <br> with no text node
+    // of its own — plain el.textContent silently drops it, jamming
+    // "solar panels." straight up against "Second line" with zero
+    // separation. This is Word's own Shift+Enter, not an edge case.
+    mockHtml('<h1>H</h1><p>First half.<br/>Second half.</p>')
+    const result = await parseDocx(fileOf())
+    expect(result.slides[0].paragraphs).toEqual(['First half. Second half.'])
+  })
+
+  it('treats a line break the same way inside a list item and a table cell', async () => {
+    mockHtml(
+      '<h1>H</h1>' +
+        '<ul><li>Line one<br/>Line two</li></ul>' +
+        '<table><tr><td><p>Cell one<br/>Cell two</p></td></tr></table>',
+    )
+    const result = await parseDocx(fileOf())
+    expect(result.slides[0].bullets).toContain('Line one Line two')
+    expect(result.slides[0].grids).toEqual([[['Cell one Cell two']]])
+  })
+
   it('keeps list items as separate bullets, not run together', async () => {
     mockHtml('<h1>Heading</h1><ul><li>Apple</li><li>Banana</li></ul>')
     const result = await parseDocx(fileOf())
     expect(result.slides[0].bullets).toEqual(['Apple', 'Banana'])
   })
 
-  it('turns a table into one bullet per row instead of jumbling every cell together', async () => {
+  it('turns a table into a real grid, not bullet text with every cell run together', async () => {
     // Real mammoth.convertToHtml output for a 2x2 table (no cell/row
     // separators of its own) — el.textContent on the whole element used to
     // read as "Top leftTop rightBottom leftBottom right".
@@ -53,13 +74,30 @@ describe('parseDocx', () => {
       '<tr><td><p>Bottom left</p></td><td><p>Bottom right</p></td></tr></table><p>Below</p>')
     const result = await parseDocx(fileOf())
     expect(result.slides[0].paragraphs).toEqual(['Above', 'Below'])
-    expect(result.slides[0].bullets).toEqual(['Top left — Top right', 'Bottom left — Bottom right'])
+    expect(result.slides[0].bullets).toEqual([])
+    expect(result.slides[0].grids).toEqual([
+      [
+        ['Top left', 'Top right'],
+        ['Bottom left', 'Bottom right'],
+      ],
+    ])
   })
 
-  it('skips empty cells within a row rather than leaving a stray separator', async () => {
-    mockHtml('<table><tr><td><p>Skill</p></td><td><p></p></td></tr></table>')
+  it('drops an entirely-empty row but pads a ragged one out to the widest row', async () => {
+    mockHtml(
+      '<table>' +
+        '<tr><td><p>A</p></td><td><p>B</p></td><td><p>C</p></td></tr>' +
+        '<tr><td><p></p></td><td><p></p></td><td><p></p></td></tr>' +
+        '<tr><td><p>x</p></td></tr>' +
+        '</table>',
+    )
     const result = await parseDocx(fileOf())
-    expect(result.slides[0].bullets).toEqual(['Skill'])
+    expect(result.slides[0].grids).toEqual([
+      [
+        ['A', 'B', 'C'],
+        ['x', '', ''],
+      ],
+    ])
   })
 
   it('passes a widened style map so Title/Subtitle-styled documents split into slides too', async () => {
@@ -82,6 +120,13 @@ describe('parseDocx', () => {
     const result = await parseDocx(fileOf())
     expect(result.slides).toHaveLength(1)
     expect(result.slides[0].heading).toBe('Real')
+  })
+
+  it('keeps a headingless, textless slide that has only a table', async () => {
+    mockHtml('<table><tr><td><p>A</p></td></tr></table>')
+    const result = await parseDocx(fileOf())
+    expect(result.slides).toHaveLength(1)
+    expect(result.slides[0].grids).toEqual([[['A']]])
   })
 
   it('treats content before the first heading as its own (headingless) slide', async () => {

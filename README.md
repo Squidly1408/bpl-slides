@@ -17,7 +17,7 @@ A client-side tool for Big Picture Learning students to turn a term's work into 
 - **Term/year aware** — new projects prompt for a term & year (defaulting to a best guess for "now"), baked into the generated title and title slide instead of a generic placeholder.
 - **Quick-insert IBPLC and Internship (LTI) slides** from the editor toolbar, on top of whatever template you started from.
 - **Projects live in your browser** (IndexedDB) — no accounts, nothing uploaded anywhere.
-- **Upload work to auto-fill slides** — drop in `.docx`, `.pptx`, `.pdf`, `.xlsx`/`.xls`/`.ods`, `.txt`/`.md`, images, video, audio, or 3D models (`.stl`/`.obj`/`.glb`/`.gltf`); content is reconstructed into reading order (fixing the jumbled multi-column PDF text, run-together bullet-list text, and run-together table cells that naive extraction produces), split into one clear point per line, capped and paged so it doesn't overflow, and laid out with the project's theme — all offline, no AI involved. A spreadsheet's data becomes a real table block (one per sheet) rather than flattened text — see the Table block below. Downloaded from Google Docs/Sheets? Export as `.docx`/`.pptx`/`.xlsx`/`.pdf` first (File → Download) — there's no server here to fetch a live Google Docs link with.
+- **Upload work to auto-fill slides** — drop in `.docx`, `.pptx`, `.pdf`, `.xlsx`/`.xls`/`.ods`, `.txt`/`.md`, images, video, audio, or 3D models (`.stl`/`.obj`/`.glb`/`.gltf`); content is reconstructed into reading order (fixing the jumbled multi-column PDF text, run-together bullet-list text, and a manual line break silently vanishing mid-sentence that naive extraction produces), split into one clear point per line, capped and paged so it doesn't overflow, and laid out with the project's theme — all offline, no AI involved. A Word table or a spreadsheet's data (one per sheet) becomes a real table block rather than flattened text — see the Table block below. Downloaded from Google Docs/Sheets? Export as `.docx`/`.pptx`/`.xlsx`/`.pdf` first (File → Download) — there's no server here to fetch a live Google Docs link with.
 - **Slide editor** — drag/resize/rotate text, shape, image, video, audio, embed, 3D-model, drawing, icon, maths, table, and Learning-Flower blocks on a free-form canvas; layering (bring forward/send back); per-slide transition picker; background colour/image; speaker notes; full undo/redo (Ctrl+Z / Ctrl+Shift+Z) and shortcuts (Delete, Ctrl+D duplicate, arrow-key nudge). Redesign a slide's layout in one click from 5 built-in styles (colour band, accent bar, bold cover, grid cards, and mirrored colour band).
 - **Shapes** — rectangle/pill/circle (adjustable corner rounding), triangle, pentagon, hexagon, star, arrow, and line, each with an optional gradient fill and drop shadow, toggleable per shape in its properties panel.
 - **Tables** — a simple data grid block (add one blank, or auto-filled from a spreadsheet's rows) with a per-cell editor and an optional bold header row; exports to a real native table in `.pptx`.
@@ -68,7 +68,7 @@ src/
   test/         Vitest environment setup (jsdom polyfills, fake-indexeddb, RTL cleanup)
 ```
 
-Colocated `*.test.ts(x)` files hold the test suite (190 tests as of writing) — unit tests for `lib/`, the
+Colocated `*.test.ts(x)` files hold the test suite (193 tests as of writing) — unit tests for `lib/`, the
 Zustand store, and component/interaction tests for Coachmarks and a few others via Testing Library.
 
 ## Known limitations (phase 2 ideas)
