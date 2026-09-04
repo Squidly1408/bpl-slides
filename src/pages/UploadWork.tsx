@@ -49,7 +49,7 @@ async function processFile(file: File, themeId: string | undefined): Promise<Sli
     }
     return draftsToSlides(result, themeId)
   }
-  throw new Error('Unsupported file type. Try Word (.docx), PowerPoint (.pptx), PDF, text/markdown, images, video, audio, or STL/OBJ/glTF models.')
+  throw new Error('Unsupported file type. Try Word (.docx), PowerPoint (.pptx), PDF, Excel/Sheets (.xlsx/.xls/.ods), text/markdown, images, video, audio, or STL/OBJ/glTF models.')
 }
 
 export default function UploadWork() {
@@ -136,8 +136,11 @@ export default function UploadWork() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mb-1 text-2xl font-bold">Upload work for "{project.title}"</h1>
       <p className="mb-6 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-        Drop in your term's work — Word docs, PowerPoints, PDFs, notes, images, video, audio, or 3D models (.stl/.obj/.glb/.gltf).
-        Each file is scanned locally in your browser and turned into draft slides you can then edit.
+        Drop in your term's work — Word docs, PowerPoints, PDFs, spreadsheets (Excel or Google Sheets — .xlsx/.xls/.ods),
+        notes, images, video, audio, or 3D models (.stl/.obj/.glb/.gltf). Each file is scanned locally in your browser
+        and turned into draft slides you can then edit. Downloaded from Google Docs/Sheets? Export it as .docx/.pptx/
+        .xlsx/.pdf first (File → Download) — this all runs in your browser, so there's no way to pull in a live
+        Google Docs link directly.
       </p>
 
       <div

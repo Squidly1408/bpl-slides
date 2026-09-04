@@ -1,6 +1,6 @@
 import { putAsset } from './db'
 import { createId } from './id'
-import { makeHeadingBlock, makeImageBlock, makeShapeBlock, makeSlide, makeTextBlock } from './blocks'
+import { makeGridBlock, makeHeadingBlock, makeImageBlock, makeShapeBlock, makeSlide, makeTextBlock } from './blocks'
 import { gridLayout, type Region } from './layout'
 import { getTheme } from './themes'
 import type { ParseResult, ParsedImage } from './parsers/types'
@@ -29,7 +29,9 @@ async function storeImages(images: ParsedImage[]) {
  * Converts heuristically-parsed document drafts into real, designed slides —
  * one clear point per line (never one run-on paragraph), capped per slide so
  * content doesn't overflow, laid out with the project's theme, and any
- * extracted images stored as local assets.
+ * extracted images stored as local assets. A draft's data tables (e.g. from
+ * an .xlsx sheet — see lib/parsers/xlsx.ts) each get their own slide as a
+ * real grid block, rather than being flattened into the same bullet text.
  */
 export async function draftsToSlides(result: ParseResult, themeId?: string): Promise<Slide[]> {
   const theme = getTheme(themeId)
@@ -41,52 +43,65 @@ export async function draftsToSlides(result: ParseResult, themeId?: string): Pro
     const items = [...draft.bullets, ...draft.paragraphs]
     const itemChunks = chunk(items, MAX_ITEMS_PER_SLIDE)
     const storedImages = await storeImages(draft.images)
+    const grids = draft.grids ?? []
 
-    if (itemChunks.length === 0 && storedImages.length === 0) {
+    if (itemChunks.length === 0 && storedImages.length === 0 && grids.length === 0) {
       if (draft.heading) {
         slides.push(makeSlide({ blocks: [makeHeadingBlock(draft.heading, { color: theme.primaryDark })] }))
       }
       continue
     }
 
-    const pageCount = Math.max(itemChunks.length, storedImages.length ? 1 : 0)
-    for (let page = 0; page < Math.max(pageCount, 1); page++) {
-      const pageItems = itemChunks[page] ?? []
-      const showImages = page === 0 && storedImages.length > 0
-      const heading = draft.heading ? (pageCount > 1 ? `${draft.heading} (${page + 1}/${pageCount})` : draft.heading) : undefined
+    if (itemChunks.length > 0 || storedImages.length > 0) {
+      const pageCount = Math.max(itemChunks.length, storedImages.length ? 1 : 0)
+      for (let page = 0; page < pageCount; page++) {
+        const pageItems = itemChunks[page] ?? []
+        const showImages = page === 0 && storedImages.length > 0
+        const heading = draft.heading ? (pageCount > 1 ? `${draft.heading} (${page + 1}/${pageCount})` : draft.heading) : undefined
 
+        const blocks: Slide['blocks'] = [makeShapeBlock({ x: 8, y: 7, w: 9, h: 0.9, color: theme.accent, radius: 50 })]
+        if (heading) {
+          blocks.push(makeTextBlock({ content: heading, x: 8, y: 9, w: 84, h: 14, fontSize: 32, fontWeight: 'bold', color: theme.primaryDark }))
+        }
+
+        const bodyY = 26
+        const bodyH = 66
+        const hasText = pageItems.length > 0
+        const textW = showImages ? 46 : 88
+
+        if (hasText) {
+          blocks.push(
+            makeTextBlock({
+              content: pageItems.map((i) => `•  ${i}`).join('\n\n'),
+              x: 6,
+              y: bodyY,
+              w: textW,
+              h: bodyH,
+              fontSize: 18,
+              color: '#211f1a',
+            }),
+          )
+        }
+
+        if (showImages) {
+          const region: Region = hasText ? { x: 54, y: bodyY, w: 40, h: bodyH } : { x: 8, y: bodyY, w: 84, h: bodyH }
+          const cells = gridLayout(storedImages.length, region)
+          storedImages.forEach((img, i) => blocks.push(makeImageBlock(img.assetId, { ...cells[i] })))
+        }
+
+        slides.push(makeSlide({ background: '#ffffff', blocks }))
+      }
+    }
+
+    grids.forEach((grid, gridIndex) => {
+      const heading = draft.heading ? (grids.length > 1 ? `${draft.heading} (${gridIndex + 1}/${grids.length})` : draft.heading) : undefined
       const blocks: Slide['blocks'] = [makeShapeBlock({ x: 8, y: 7, w: 9, h: 0.9, color: theme.accent, radius: 50 })]
       if (heading) {
         blocks.push(makeTextBlock({ content: heading, x: 8, y: 9, w: 84, h: 14, fontSize: 32, fontWeight: 'bold', color: theme.primaryDark }))
       }
-
-      const bodyY = 26
-      const bodyH = 66
-      const hasText = pageItems.length > 0
-      const textW = showImages ? 46 : 88
-
-      if (hasText) {
-        blocks.push(
-          makeTextBlock({
-            content: pageItems.map((i) => `•  ${i}`).join('\n\n'),
-            x: 6,
-            y: bodyY,
-            w: textW,
-            h: bodyH,
-            fontSize: 18,
-            color: '#211f1a',
-          }),
-        )
-      }
-
-      if (showImages) {
-        const region: Region = hasText ? { x: 54, y: bodyY, w: 40, h: bodyH } : { x: 8, y: bodyY, w: 84, h: bodyH }
-        const cells = gridLayout(storedImages.length, region)
-        storedImages.forEach((img, i) => blocks.push(makeImageBlock(img.assetId, { ...cells[i] })))
-      }
-
+      blocks.push(makeGridBlock(grid, { x: 8, y: 26, w: 84, h: 66, headerRow: true }))
       slides.push(makeSlide({ background: '#ffffff', blocks }))
-    }
+    })
   }
 
   return slides
