@@ -225,6 +225,22 @@ export async function exportProjectToPptx(project: Project): Promise<void> {
       } else if (block.type === 'flowerGraph') {
         const data = await rasterizeSvg(flowerGraphInnerSvg(block.levels), FLOWER_VIEWBOX, FLOWER_VIEWBOX)
         s.addImage({ data, x, y, w, h, rotate, sizing: { type: 'contain', w, h } })
+      } else if (block.type === 'grid') {
+        const rows = block.cells.map((row, ri) =>
+          row.map((cellText) => ({
+            text: cellText,
+            options: {
+              bold: block.headerRow && ri === 0,
+              fill: block.headerRow && ri === 0 ? { color: 'F0EEE7' } : undefined,
+              fontFace: PPTX_FONT_FACE,
+              fontSize: 11,
+              color: '211F1A',
+              valign: 'top' as const,
+              border: { type: 'solid' as const, color: 'CCCCCC', pt: 0.75 },
+            },
+          })),
+        )
+        s.addTable(rows, { x, y, w, h, rowH: h / block.cells.length, autoPage: false })
       } else if (block.type === 'math') {
         // KaTeX renders to DOM/CSS, not a simple path, so faithfully
         // rasterizing it without a heavier DOM-to-canvas dependency isn't

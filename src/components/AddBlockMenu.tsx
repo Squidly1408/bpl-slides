@@ -12,6 +12,7 @@ import {
   IconShape,
   IconSigma,
   IconStarSmall,
+  IconTable,
   IconType,
   IconVideo,
 } from './icons'
@@ -25,6 +26,7 @@ export interface AddBlockHandlers {
   onAddDrawing: () => void
   onAddIcon: () => void
   onAddMath: () => void
+  onAddGrid: () => void
   onAddFlowerGraph: () => void
   onAddIbplcSlide: () => void
   onAddInternshipSlide: () => void
@@ -102,6 +104,9 @@ export default function AddBlockMenu({
       </button>
       <button onClick={() => run(handlers.onAddMath)} className={itemCls} style={itemStyle} title="Add a maths expression or a photo of maths">
         <IconSigma size={iconSize} /> Maths
+      </button>
+      <button onClick={() => run(handlers.onAddGrid)} className={itemCls} style={itemStyle} title="Add a data table">
+        <IconTable size={iconSize} /> Table
       </button>
       <div className={isRail ? 'my-1 h-px w-8' : 'col-span-full my-1 h-px'} style={{ background: 'var(--color-border)' }} />
       <button onClick={() => run(handlers.onAddIbplcSlide)} className={itemCls} style={itemStyle} title="Insert an IBPLC slide">

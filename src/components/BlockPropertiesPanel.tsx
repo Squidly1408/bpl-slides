@@ -403,9 +403,88 @@ function TypeSpecificFields({
       return <MathFields block={block} onChange={onChange} />
     case 'flowerGraph':
       return <FlowerGraphFields block={block} onChange={onChange} />
+    case 'grid':
+      return <GridFields block={block} onChange={onChange} />
     default:
       return null
   }
+}
+
+function GridFields({
+  block,
+  onChange,
+}: {
+  block: Extract<Block, { type: 'grid' }>
+  onChange: (patch: Partial<Block>) => void
+}) {
+  const cols = block.cells[0]?.length ?? 0
+
+  function updateCell(row: number, col: number, value: string) {
+    onChange({ cells: block.cells.map((r, ri) => (ri === row ? r.map((c, ci) => (ci === col ? value : c)) : r)) })
+  }
+  function addRow() {
+    onChange({ cells: [...block.cells, Array(cols).fill('')] })
+  }
+  function removeLastRow() {
+    if (block.cells.length <= 1) return
+    onChange({ cells: block.cells.slice(0, -1) })
+  }
+  function addColumn() {
+    onChange({ cells: block.cells.map((row) => [...row, '']) })
+  }
+  function removeLastColumn() {
+    if (cols <= 1) return
+    onChange({ cells: block.cells.map((row) => row.slice(0, -1)) })
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Checkbox label="Bold header row" checked={block.headerRow} onChange={(v) => onChange({ headerRow: v })} />
+      <div>
+        <label className={labelCls}>Rows / columns</label>
+        <div className="grid grid-cols-2 gap-1.5 text-xs">
+          <button type="button" onClick={addRow} className="rounded-lg border py-1.5" style={inputStyle}>
+            + Row
+          </button>
+          <button type="button" onClick={removeLastRow} className="rounded-lg border py-1.5" style={inputStyle}>
+            − Row
+          </button>
+          <button type="button" onClick={addColumn} className="rounded-lg border py-1.5" style={inputStyle}>
+            + Column
+          </button>
+          <button type="button" onClick={removeLastColumn} className="rounded-lg border py-1.5" style={inputStyle}>
+            − Column
+          </button>
+        </div>
+      </div>
+      <div>
+        <label className={labelCls}>Cells</label>
+        <div className="max-h-64 overflow-auto rounded-lg border" style={inputStyle}>
+          <table className="w-full border-collapse">
+            <tbody>
+              {block.cells.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cellText, ci) => (
+                    <td key={ci} className="border p-0" style={inputStyle}>
+                      <input
+                        value={cellText}
+                        onChange={(e) => updateCell(ri, ci, e.target.value)}
+                        className="w-full min-w-[64px] bg-transparent px-1.5 py-1 text-xs focus:outline-none"
+                        style={{ fontWeight: block.headerRow && ri === 0 ? 700 : 400 }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          Click a cell to edit it.
+        </p>
+      </div>
+    </div>
+  )
 }
 
 function MathFields({

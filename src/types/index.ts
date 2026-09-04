@@ -35,6 +35,7 @@ export type BlockType =
   | 'icon'
   | 'math'
   | 'flowerGraph'
+  | 'grid'
 
 export interface BlockBase {
   id: string
@@ -177,6 +178,19 @@ export interface FlowerGraphBlock extends BlockBase {
   levels: Record<string, number>
 }
 
+/** A simple data table/grid — rows of plain-text cells, e.g. pulled in from
+ * a spreadsheet (see lib/parsers/xlsx.ts) or added by hand for a comparison
+ * table or a small dataset. Every row is the same width (`cells[i].length`
+ * is constant); a ragged spreadsheet is padded out to its widest row at
+ * parse time rather than carrying that irregularity into the block itself. */
+export interface GridBlock extends BlockBase {
+  type: 'grid'
+  cells: string[][]
+  /** Bolds the first row and tints its background with the project theme,
+   * for a header-labelled table rather than a plain grid of values. */
+  headerRow: boolean
+}
+
 export type Block =
   | TextBlock
   | ShapeBlock
@@ -190,6 +204,7 @@ export type Block =
   | IconBlock
   | MathBlock
   | FlowerGraphBlock
+  | GridBlock
 
 export interface Slide {
   id: string

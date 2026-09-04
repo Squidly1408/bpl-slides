@@ -9,6 +9,7 @@ import {
   makeEmbedBlock,
   makeFileBlock,
   makeFlowerGraphBlock,
+  makeGridBlock,
   makeIconBlock,
   makeImageBlock,
   makeMathBlock,
@@ -376,6 +377,17 @@ export default function Editor() {
     setSelectedBlockId(block.id)
   }
 
+  function handleAddGrid() {
+    if (!currentSlide) return
+    const block = makeGridBlock([
+      ['Header 1', 'Header 2'],
+      ['', ''],
+      ['', ''],
+    ])
+    addBlock(currentSlide.id, block)
+    setSelectedBlockId(block.id)
+  }
+
   async function handleBackgroundImage(file: File) {
     if (!currentSlide) return
     const assetId = createId()
@@ -555,6 +567,7 @@ export default function Editor() {
     onAddDrawing: handleAddDrawing,
     onAddIcon: () => setIconPickerMode('new'),
     onAddMath: () => setShowMathModal(true),
+    onAddGrid: handleAddGrid,
     onAddFlowerGraph: handleAddFlowerGraph,
     onAddIbplcSlide: handleAddIbplcSlide,
     onAddInternshipSlide: handleAddInternshipSlide,

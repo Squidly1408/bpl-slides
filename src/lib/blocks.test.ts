@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   cloneBlock,
+  makeGridBlock,
   makeHeadingBlock,
   makeIconBlock,
   makeImageBlock,
@@ -134,5 +135,34 @@ describe('seedZCounterFromSlides', () => {
 
   it('handles slides with no blocks at all', () => {
     expect(() => seedZCounterFromSlides([makeSlide()])).not.toThrow()
+  })
+})
+
+describe('makeGridBlock', () => {
+  it('carries the given cells through, with a header row by default', () => {
+    const block = makeGridBlock([
+      ['A', 'B'],
+      ['1', '2'],
+    ])
+    expect(block.type).toBe('grid')
+    expect(block.cells).toEqual([
+      ['A', 'B'],
+      ['1', '2'],
+    ])
+    expect(block.headerRow).toBe(true)
+  })
+
+  it('falls back to a blank 2x2 grid when given no cells', () => {
+    const block = makeGridBlock([])
+    expect(block.cells).toEqual([
+      ['', ''],
+      ['', ''],
+    ])
+  })
+
+  it('lets a partial override headerRow and position', () => {
+    const block = makeGridBlock([['x']], { headerRow: false, x: 0, y: 0 })
+    expect(block.headerRow).toBe(false)
+    expect(block.x).toBe(0)
   })
 })

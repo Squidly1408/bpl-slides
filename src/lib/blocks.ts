@@ -8,6 +8,7 @@ import type {
   FileBlock,
   FileKind,
   FlowerGraphBlock,
+  GridBlock,
   IconBlock,
   ImageBlock,
   MathBlock,
@@ -265,6 +266,22 @@ export function makeFlowerGraphBlock(partial: Partial<FlowerGraphBlock> = {}): F
     rotation: 0,
     zIndex: nextZ(),
     levels: defaultFlowerLevels(),
+    ...partial,
+  }
+}
+
+export function makeGridBlock(cells: string[][], partial: Partial<GridBlock> = {}): GridBlock {
+  return {
+    id: createId(),
+    type: 'grid',
+    x: 10,
+    y: 15,
+    w: 80,
+    h: 70,
+    rotation: 0,
+    zIndex: nextZ(),
+    cells: cells.length ? cells : [['', ''], ['', '']],
+    headerRow: true,
     ...partial,
   }
 }

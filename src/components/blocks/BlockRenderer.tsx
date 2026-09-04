@@ -3,6 +3,7 @@ import { SHAPE_CLIP_PATHS } from '../../lib/shapes'
 import MeshViewer from '../MeshViewer'
 import FileBlockContent from './FileBlockContent'
 import FlowerGraphBlock from './FlowerGraphBlock'
+import GridBlockContent from './GridBlockContent'
 import IconBlockContent from './IconBlockContent'
 import MathBlockContent from './MathBlockContent'
 import type { Block } from '../../types'
@@ -97,6 +98,8 @@ export default function BlockRenderer({ block, interactive, scale = 1 }: { block
       return <MathBlockContent block={block} scale={scale} />
     case 'flowerGraph':
       return <FlowerGraphBlock block={block} />
+    case 'grid':
+      return <GridBlockContent block={block} scale={scale} />
     default:
       return null
   }
