@@ -43,9 +43,22 @@ npm run build      # type-check (incl. tests, see below) + production build to d
 npm run preview    # preview the production build locally
 npm test           # run the Vitest suite in watch mode
 npm run test:run   # run it once (CI-style)
+npm run test:ui    # Vitest's browser UI
+npm run lint       # oxlint
 ```
 
 Requires Node 20+. The offline/install behaviour only runs against the production build — `npm run dev` does not register the service worker; use `npm run build && npm run preview` to test it.
+
+Deploying is `npm run build && firebase deploy --only hosting` — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+## Documentation
+
+| Doc | Read it when… |
+| --- | --- |
+| [docs/HANDOVER.md](docs/HANDOVER.md) | You're taking over the project — current state, access to transfer, known issues, what to do first. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | You need to understand how it works — data model, storage, editor state, rendering, auto-fill pipeline, export, offline. |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | You're changing code — setup, testing, conventions, and step-by-step recipes (new block type, theme, template, industry pack, parser, tour step). |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | You're shipping a release — Firebase Hosting, caching, service-worker updates, rollback. |
 
 ## Project structure
 
@@ -79,11 +92,10 @@ Zustand store, and component/interaction tests for Coachmarks and a few others v
 - The Maths tool is typed-only (LaTeX via KaTeX), not photo-to-maths OCR — real handwriting recognition needs a cloud service (e.g. Mathpix), which would mean sending student photos to a third party and breaking the app's nothing-leaves-the-browser design. A photo of maths can still be attached as a plain, un-digitised image.
 - Spreadsheet auto-fill (`lib/parsers/xlsx.ts`) pulls in each sheet's *cell data* as a table block, not any chart drawn from it — a native Excel/Sheets chart is a vector description (series, axes, styling), not an image, so reproducing it faithfully would need a real charting engine rather than a heuristic parser. The data a chart was built from is still on the sheet either way, so it still comes across.
 - The Icon set (Font Awesome Free) is icons under CC BY 4.0 and code under MIT; the Maths renderer (KaTeX) is MIT — both bundled locally, not loaded from a CDN. See `/terms` for the full attribution.
+- Voice navigation needs an internet connection — the browser's speech recognition (`SpeechRecognition`/`webkitSpeechRecognition`) sends audio to a cloud speech service (e.g. Google's, in Chrome) to transcribe it, it isn't done on-device, so it's the one feature that won't work offline even though the rest of the app (including Present mode itself) does. The app checks `navigator.onLine` and warns before you try to enable it while offline. It can also fail with the same kind of error while genuinely online, for two different reasons `lib/speech.ts` distinguishes rather than just claiming "you're offline": a school/organisation network's content filter (Securly, GoGuardian, Cisco Umbrella, a proxy, etc.) blocking the specific cloud endpoint, common on school wifi (fixable — a different network, or asking IT) — or **Brave**, which ships without the Google speech service Chromium normally bundles for this, as a deliberate privacy choice with no setting to turn it back on (confirmed with a user: Shields fully off didn't change anything, ruling that out as the mechanism). Detected via `navigator.brave`, so the in-app error says it plainly rather than sending a Brave user chasing network settings that won't help — voice nav just isn't available in Brave; Chrome/Edge work. It also always uses the browser/OS's current default microphone — there's no web API that lets a page pick a different input device, so there's no in-app microphone picker.
+- Drawings are flattened to PNG, not stored as editable vector strokes.
+- The "showcase a website" embed block can't fetch a page's content itself (browser CORS) — it embeds the live page in an iframe instead, which some sites block from embedding.
 
 ## License
 
 All rights reserved — see [LICENSE](LICENSE). Bundled third-party assets (Font Awesome Free, KaTeX) keep their own licenses; see that file for details.
-
-- Voice navigation needs an internet connection — the browser's speech recognition (`SpeechRecognition`/`webkitSpeechRecognition`) sends audio to a cloud speech service (e.g. Google's, in Chrome) to transcribe it, it isn't done on-device, so it's the one feature that won't work offline even though the rest of the app (including Present mode itself) does. The app checks `navigator.onLine` and warns before you try to enable it while offline. It can also fail with the same kind of error while genuinely online, for two different reasons `lib/speech.ts` distinguishes rather than just claiming "you're offline": a school/organisation network's content filter (Securly, GoGuardian, Cisco Umbrella, a proxy, etc.) blocking the specific cloud endpoint, common on school wifi (fixable — a different network, or asking IT) — or **Brave**, which ships without the Google speech service Chromium normally bundles for this, as a deliberate privacy choice with no setting to turn it back on (confirmed with a user: Shields fully off didn't change anything, ruling that out as the mechanism). Detected via `navigator.brave`, so the in-app error says it plainly rather than sending a Brave user chasing network settings that won't help — voice nav just isn't available in Brave; Chrome/Edge work. It also always uses the browser/OS's current default microphone — there's no web API that lets a page pick a different input device, so there's no in-app microphone picker.
-- Drawings are flattened to PNG, not stored as editable vector strokes.
-- The "showcase a website" embed block can't fetch a page's content itself (browser CORS) — it embeds the live page in an iframe instead, which some sites block from embedding.
